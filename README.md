@@ -1,1 +1,3 @@
-# isomorphic-fs-webfs
+# isomorphic-fs
+
+The isomorphic FileSystem API for Web.
