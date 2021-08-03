@@ -1,9 +1,9 @@
 import { NotFoundError, SeekOrigin, util } from "isomorphic-fs";
-import { WebFileSystem } from "../fs/WebFileSystem";
+import { WfsFileSystem } from "../fs/WfsFileSystem";
 
 const { toArrayBuffer, toString } = util;
 
-const fs = new WebFileSystem("/isomorphic-fs-test", 50 * 1024 * 1024);
+const fs = new WfsFileSystem("/isomorphic-fs-test", 50 * 1024 * 1024);
 
 describe("basic", () => {
   beforeAll(async () => {

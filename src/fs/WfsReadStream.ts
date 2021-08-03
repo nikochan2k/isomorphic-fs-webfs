@@ -1,10 +1,10 @@
 import { AbstractReadStream, OpenOptions, util } from "isomorphic-fs";
 import { toArrayBuffer } from "../util/buffer";
-import { WebFile } from "./WebFile";
-import { convertError } from "./WebFileSystem";
+import { WfsFile } from "./WfsFile";
+import { convertError } from "./WfsFileSystem";
 
-export class WebReadStream extends AbstractReadStream {
-  constructor(private wf: WebFile, options: OpenOptions) {
+export class WfsReadStream extends AbstractReadStream {
+  constructor(private wf: WfsFile, options: OpenOptions) {
     super(wf, options);
   }
 

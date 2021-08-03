@@ -6,13 +6,13 @@ import {
   util,
 } from "isomorphic-fs";
 import { toArrayBuffer } from "isomorphic-fs/lib/util";
-import { WebFile } from "./WebFile";
-import { convertError } from "./WebFileSystem";
+import { WfsFile } from "./WfsFile";
+import { convertError } from "./WfsFileSystem";
 
-export class WebWriteStream extends AbstractWriteStream {
+export class WfsWriteStream extends AbstractWriteStream {
   private opened = false;
 
-  constructor(private wf: WebFile, options: OpenWriteOptions) {
+  constructor(private wf: WfsFile, options: OpenWriteOptions) {
     super(wf, options);
   }
 

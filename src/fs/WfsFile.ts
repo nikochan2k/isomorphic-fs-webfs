@@ -6,20 +6,19 @@ import {
   OpenWriteOptions,
   util,
 } from "isomorphic-fs";
-import { getName } from "isomorphic-fs/lib/util";
-import { convertError, WebFileSystem } from "./WebFileSystem";
-import { WebReadStream } from "./WebReadStream";
-import { WebWriteStream } from "./WebWriteStream";
+import { WfsWriteStream } from "./WfsWriteStream";
+import { convertError, WfsFileSystem } from "./WfsFileSystem";
+import { WfsReadStream } from "./WfsReadStream";
 
-export class WebFile extends AbstractFile {
-  constructor(public wfs: WebFileSystem, path: string) {
+export class WfsFile extends AbstractFile {
+  constructor(public wfs: WfsFileSystem, path: string) {
     super(wfs, path);
   }
 
   public async _createReadStream(
     options: OpenOptions
   ): Promise<AbstractReadStream> {
-    return new WebReadStream(this, options);
+    return new WfsReadStream(this, options);
   }
 
   public async _createWriteStream(
@@ -37,7 +36,7 @@ export class WebFile extends AbstractFile {
         );
       });
     }
-    return new WebWriteStream(this, options);
+    return new WfsWriteStream(this, options);
   }
 
   public async _rm(): Promise<void> {

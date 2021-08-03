@@ -1,8 +1,8 @@
 import { AbstractDirectory, util } from "isomorphic-fs";
-import { convertError, WebFileSystem } from "./WebFileSystem";
+import { convertError, WfsFileSystem } from "./WfsFileSystem";
 
-export class WebDirectory extends AbstractDirectory {
-  constructor(private wfs: WebFileSystem, path: string) {
+export class WfsDirectory extends AbstractDirectory {
+  constructor(private wfs: WfsFileSystem, path: string) {
     super(wfs, path);
   }
 

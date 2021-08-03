@@ -24,8 +24,8 @@ import {
   URLType,
   util,
 } from "isomorphic-fs";
-import { WebDirectory } from "./WebDirectory";
-import { WebFile } from "./WebFile";
+import { WfsDirectory } from "./WfsDirectory";
+import { WfsFile } from "./WfsFile";
 
 export function convertError(repository: string, path: string, err: any) {
   if (err instanceof AbstractFileSystemError) {
@@ -109,7 +109,7 @@ export function convertError(repository: string, path: string, err: any) {
 
 const requestFileSystem =
   window.requestFileSystem || (window as any).webkitRequestFileSystem;
-export class WebFileSystem extends AbstractFileSystem {
+export class WfsFileSystem extends AbstractFileSystem {
   private fs?: FileSystem;
   private rootDir: string;
 
@@ -193,11 +193,11 @@ export class WebFileSystem extends AbstractFileSystem {
   }
 
   public async getDirectory(path: string): Promise<Directory> {
-    return new WebDirectory(this, path);
+    return new WfsDirectory(this, path);
   }
 
   public async getFile(path: string): Promise<File> {
-    return new WebFile(this, path);
+    return new WfsFile(this, path);
   }
 
   public async toURL(path: string, urlType: URLType = "GET"): Promise<string> {
