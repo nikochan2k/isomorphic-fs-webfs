@@ -1,5 +1,5 @@
 import { NotFoundError, TypeMismatchError } from "isomorphic-fs";
-import { WfsFileSystem } from "../fs/WfsFileSystem";
+import { WfsFileSystem } from "../webfs/WfsFileSystem";
 
 const fs = new WfsFileSystem("/isomorphic-fs-test", 50 * 1024 * 1024);
 

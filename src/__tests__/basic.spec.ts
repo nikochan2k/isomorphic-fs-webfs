@@ -1,5 +1,5 @@
 import { NotFoundError, SeekOrigin, util } from "isomorphic-fs";
-import { WfsFileSystem } from "../fs/WfsFileSystem";
+import { WfsFileSystem } from "../webfs/WfsFileSystem";
 
 const { toArrayBuffer, toString } = util;
 
