@@ -25,8 +25,8 @@ export class WfsWriteStream extends AbstractWriteStream {
   }
 
   public async _write(buffer: ArrayBuffer | Uint8Array): Promise<void> {
-    await this._process((writer) => {
-      const ab = toArrayBuffer(buffer);
+    await this._process(async (writer) => {
+      const ab = await toArrayBuffer(buffer);
       const blob = new Blob([ab]);
       writer.write(blob);
     });

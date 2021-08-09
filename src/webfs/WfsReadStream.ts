@@ -4,7 +4,7 @@ import {
   OpenOptions,
   util,
 } from "isomorphic-fs";
-import { toArrayBuffer } from "../util/buffer";
+import { toArrayBuffer } from "./buffer";
 import { WfsFile } from "./WfsFile";
 
 export class WfsReadStream extends AbstractReadStream {
