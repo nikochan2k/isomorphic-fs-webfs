@@ -1,7 +1,11 @@
-import { AbstractReadStream, OpenOptions, util } from "isomorphic-fs";
+import {
+  AbstractReadStream,
+  createError,
+  OpenOptions,
+  util,
+} from "isomorphic-fs";
 import { toArrayBuffer } from "../util/buffer";
 import { WfsFile } from "./WfsFile";
-import { convertError } from "./WfsFileSystem";
 
 export class WfsReadStream extends AbstractReadStream {
   constructor(private wf: WfsFile, options: OpenOptions) {
@@ -39,8 +43,7 @@ export class WfsReadStream extends AbstractReadStream {
     return new Promise<File>(async (resolve, reject) => {
       const repository = wfs.repository;
       const path = wf.path;
-      const handle = (err: FileError) =>
-        reject(convertError(repository, path, err));
+      const handle = (e: any) => reject(createError({ repository, path, e }));
       const fullPath = util.joinPaths(repository, path);
       fs.root.getFile(
         fullPath,

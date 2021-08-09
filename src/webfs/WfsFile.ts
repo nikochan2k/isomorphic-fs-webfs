@@ -2,12 +2,13 @@ import {
   AbstractFile,
   AbstractReadStream,
   AbstractWriteStream,
+  createError,
   OpenOptions,
   OpenWriteOptions,
   util,
 } from "isomorphic-fs";
 import { WfsWriteStream } from "./WfsWriteStream";
-import { convertError, WfsFileSystem } from "./WfsFileSystem";
+import { WfsFileSystem } from "./WfsFileSystem";
 import { WfsReadStream } from "./WfsReadStream";
 
 export class WfsFile extends AbstractFile {
@@ -32,7 +33,14 @@ export class WfsFile extends AbstractFile {
           fullPath,
           { create: true },
           () => resolve(),
-          (err: any) => reject(convertError(this.fs.repository, this.path, err))
+          (e) =>
+            reject(
+              createError({
+                repository: this.fs.repository,
+                path: this.path,
+                e,
+              })
+            )
         );
       });
     }
@@ -47,10 +55,23 @@ export class WfsFile extends AbstractFile {
         fullPath,
         { create: false },
         (entry) =>
-          entry.remove(resolve, (err) =>
-            reject(convertError(this.fs.repository, this.path, err))
+          entry.remove(resolve, (e) =>
+            reject(
+              createError({
+                repository: this.fs.repository,
+                path: this.path,
+                e,
+              })
+            )
           ),
-        (err) => reject(convertError(this.fs.repository, this.path, err))
+        (e) =>
+          reject(
+            createError({
+              repository: this.fs.repository,
+              path: this.path,
+              e,
+            })
+          )
       );
     });
   }

@@ -22,7 +22,7 @@ describe("head", () => {
       await fs.stat("/nothing");
       fail("/nothing exists");
     } catch (e) {
-      expect(e).toBeInstanceOf(NotFoundError);
+      expect(e.name).toBe(NotFoundError.name);
     }
   });
 

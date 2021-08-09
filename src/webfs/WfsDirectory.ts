@@ -1,5 +1,5 @@
-import { AbstractDirectory, util } from "isomorphic-fs";
-import { convertError, WfsFileSystem } from "./WfsFileSystem";
+import { AbstractDirectory, createError, util } from "isomorphic-fs";
+import { WfsFileSystem } from "./WfsFileSystem";
 
 export class WfsDirectory extends AbstractDirectory {
   constructor(private wfs: WfsFileSystem, path: string) {
@@ -24,10 +24,24 @@ export class WfsDirectory extends AbstractDirectory {
               }
               resolve(list);
             },
-            (err) => reject(convertError(this.fs.repository, this.path, err))
+            (e) =>
+              reject(
+                createError({
+                  repository: this.fs.repository,
+                  path: this.path,
+                  e,
+                })
+              )
           );
         },
-        (err) => reject(convertError(this.fs.repository, this.path, err))
+        (e) =>
+          reject(
+            createError({
+              repository: this.fs.repository,
+              path: this.path,
+              e,
+            })
+          )
       );
     });
   }
@@ -40,7 +54,16 @@ export class WfsDirectory extends AbstractDirectory {
         fullPath,
         { create: true },
         () => resolve(),
-        (err) => reject(convertError(this.fs.repository, this.path, err))
+        (e) =>
+          reject(
+            reject(
+              createError({
+                repository: this.fs.repository,
+                path: this.path,
+                e,
+              })
+            )
+          )
       );
     });
   }
@@ -61,15 +84,32 @@ export class WfsDirectory extends AbstractDirectory {
         fullPath,
         { create: false },
         (entry) => {
-          const handle = (err: FileError) =>
-            reject(convertError(this.fs.repository, this.path, err));
+          const handle = (e: any) =>
+            reject(
+              reject(
+                createError({
+                  repository: this.fs.repository,
+                  path: this.path,
+                  e,
+                })
+              )
+            );
           if (recursive) {
             entry.removeRecursively(resolve, handle);
           } else {
             entry.remove(resolve, handle);
           }
         },
-        (err) => reject(convertError(this.fs.repository, this.path, err))
+        (e) =>
+          reject(
+            reject(
+              createError({
+                repository: this.fs.repository,
+                path: this.path,
+                e,
+              })
+            )
+          )
       );
     });
   }

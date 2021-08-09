@@ -1,13 +1,13 @@
 import {
   AbortError,
   AbstractWriteStream,
+  createError,
   NoModificationAllowedError,
   OpenWriteOptions,
   util,
 } from "isomorphic-fs";
 import { toArrayBuffer } from "isomorphic-fs/lib/util";
 import { WfsFile } from "./WfsFile";
-import { convertError } from "./WfsFileSystem";
 
 export class WfsWriteStream extends AbstractWriteStream {
   private opened = false;
@@ -44,8 +44,7 @@ export class WfsWriteStream extends AbstractWriteStream {
     const fullPath = util.joinPaths(repository, path);
     const fs = await this.wf.wfs._getFS();
     return new Promise<FileWriter>((resolve, reject) => {
-      const handle = (err: FileError) =>
-        reject(convertError(repository, path, err));
+      const handle = (e: any) => reject(createError({ repository, path, e }));
       fs.root.getFile(
         fullPath,
         { create: true },
@@ -68,13 +67,27 @@ export class WfsWriteStream extends AbstractWriteStream {
                   writer.onerror = undefined as any;
                   writer.onwriteend = undefined as any;
                 };
-                writer.onabort = (ev) => {
+                writer.onabort = (e) => {
                   removeEvents();
-                  reject(new AbortError(repository, path, ev));
+                  reject(
+                    createError({
+                      name: AbortError.name,
+                      repository,
+                      path,
+                      e,
+                    })
+                  );
                 };
-                writer.onerror = (ev) => {
+                writer.onerror = (e) => {
                   removeEvents();
-                  reject(new NoModificationAllowedError(repository, path, ev));
+                  reject(
+                    createError({
+                      name: NoModificationAllowedError.name,
+                      repository,
+                      path,
+                      e,
+                    })
+                  );
                 };
                 writer.onwriteend = () => {
                   removeEvents();
@@ -95,9 +108,24 @@ export class WfsWriteStream extends AbstractWriteStream {
       const wf = this.wf;
       const repository = wf.fs.repository;
       const path = wf.path;
-      writer.onabort = (ev) => reject(new AbortError(repository, path, ev));
-      writer.onerror = (ev) =>
-        reject(new NoModificationAllowedError(repository, path, ev));
+      writer.onabort = (e) =>
+        reject(
+          createError({
+            name: AbortError.name,
+            repository,
+            path,
+            e,
+          })
+        );
+      writer.onerror = (e) =>
+        reject(
+          createError({
+            name: NoModificationAllowedError.name,
+            repository,
+            path,
+            e,
+          })
+        );
       writer.onwriteend = () => {
         resolve();
       };

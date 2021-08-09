@@ -1,111 +1,21 @@
 import {
-  AbortError,
   AbstractFileSystem,
-  AbstractFileSystemError,
+  createError,
   Directory,
-  EncodingError,
   File,
   FileSystemOptions,
   HeadOptions,
-  InvalidModificationError,
-  InvalidStateError,
-  NoModificationAllowedError,
-  NotFoundError,
-  NotReadableError,
+  NotAllowedError,
   NotSupportedError,
   PatchOptions,
-  PathExistsError,
   Props,
   QuotaExceededError,
-  SecurityError,
   Stats,
-  SyntaxError,
-  TypeMismatchError,
   URLType,
   util,
 } from "isomorphic-fs";
 import { WfsDirectory } from "./WfsDirectory";
 import { WfsFile } from "./WfsFile";
-
-export function convertError(repository: string, path: string, err: any) {
-  if (err instanceof AbstractFileSystemError) {
-    return err;
-  }
-  let code = 0;
-  let name = "";
-  if (err) {
-    const e = err as any;
-    if (e.code) {
-      code = e.code;
-    }
-    name = "";
-    if (e.name) {
-      name = e.name;
-    }
-    let message = "";
-    if (e.message) {
-      message = e.message;
-    }
-    console.debug(repository, path, code, name, message);
-  }
-  if (name) {
-    switch (name) {
-      case "NotFoundError":
-        return new NotFoundError(repository, path, err);
-      case "SecurityError":
-        return new SecurityError(repository, path, err);
-      case "AbortError":
-        return new AbortError(repository, path, err);
-      case "NotReadableError":
-        return new NotReadableError(repository, path, err);
-      case "EncodingError":
-        return new EncodingError(repository, path, err);
-      case "NoModificationAllowedError":
-        return new NoModificationAllowedError(repository, path, err);
-      case "InvalidStateError":
-        return new InvalidStateError(repository, path, err);
-      case "SyntaxError":
-        return new SyntaxError(repository, path, err);
-      case "InvalidModificationError":
-        return new InvalidModificationError(repository, path, err);
-      case "QuotaExceededError":
-        return new QuotaExceededError(repository, path, err);
-      case "TypeMismatchError":
-        return new TypeMismatchError(repository, path, err);
-      case "PathExistsError":
-        return new PathExistsError(repository, path, err);
-    }
-  }
-  if (code) {
-    switch (code) {
-      case 1: // NOT_FOUND_ERR
-        return new NotFoundError(repository, path, err);
-      case 2: // SECURITY_ERR
-        return new SecurityError(repository, path, err);
-      case 3: // ABORT_ERR:
-        return new AbortError(repository, path, err);
-      case 4: // NOT_READABLE_ERR:
-        return new NotReadableError(repository, path, err);
-      case 5: // ENCODING_ERR:
-        return new EncodingError(repository, path, err);
-      case 6: // NO_MODIFICATION_ALLOWED_ERR:
-        return new NoModificationAllowedError(repository, path, err);
-      case 7: // INVALID_STATE_ERR:
-        return new InvalidStateError(repository, path, err);
-      case 8: // SYNTAX_ERR:
-        return new SyntaxError(repository, path, err);
-      case 9: // INVALID_MODIFICATION_ERR:
-        return new InvalidModificationError(repository, path, err);
-      case 10: // QUOTA_EXCEEDED_ERR:
-        return new QuotaExceededError(repository, path, err);
-      case 11: // TYPE_MISMATCH_ERR:
-        return new TypeMismatchError(repository, path, err);
-      case 12: // PATH_EXISTS_ERR:
-        return new PathExistsError(repository, path, err);
-    }
-  }
-  return new NotSupportedError(repository, path, err);
-}
 
 const requestFileSystem =
   window.requestFileSystem || (window as any).webkitRequestFileSystem;
@@ -133,7 +43,15 @@ export class WfsFileSystem extends AbstractFileSystem {
           window.PERSISTENT,
           this.size,
           () => resolve(),
-          (e: any) => reject(convertError(this.repository, "", e))
+          (e: any) =>
+            reject(
+              createError({
+                name: QuotaExceededError.name,
+                repository: this.repository,
+                path: "",
+                e,
+              })
+            )
         );
       });
     } else if ((navigator as any).webkitPersistentStorage) {
@@ -143,7 +61,15 @@ export class WfsFileSystem extends AbstractFileSystem {
         webkitPersistentStorage.requestQuota(
           this.size,
           () => resolve(),
-          (e: any) => reject(convertError(this.repository, "", e))
+          (e: any) =>
+            reject(
+              createError({
+                name: QuotaExceededError.name,
+                repository: this.repository,
+                path: "",
+                e,
+              })
+            )
         );
       });
     }
@@ -152,7 +78,15 @@ export class WfsFileSystem extends AbstractFileSystem {
         window.PERSISTENT,
         this.size,
         (fs) => resolve(fs),
-        (err) => reject(convertError(this.repository, "", err))
+        (e) =>
+          reject(
+            createError({
+              name: NotAllowedError.name,
+              repository: this.repository,
+              path: "",
+              e,
+            })
+          )
       );
     });
     await new Promise<void>((resolve, reject) => {
@@ -160,7 +94,14 @@ export class WfsFileSystem extends AbstractFileSystem {
         this.repository,
         { create: true },
         () => resolve(),
-        (err) => reject(convertError(this.repository, "", err))
+        (e) =>
+          reject(
+            createError({
+              repository: this.repository,
+              path: "",
+              e,
+            })
+          )
       );
     });
     this.fs = fs;
@@ -179,7 +120,14 @@ export class WfsFileSystem extends AbstractFileSystem {
             resolve({ modified });
           }
         },
-        (err) => reject(convertError(this.repository, path, err))
+        (e) =>
+          reject(
+            createError({
+              repository: this.repository,
+              path,
+              e,
+            })
+          )
       );
     });
   }
@@ -202,11 +150,12 @@ export class WfsFileSystem extends AbstractFileSystem {
 
   public async toURL(path: string, urlType: URLType = "GET"): Promise<string> {
     if (urlType !== "GET") {
-      throw new NotSupportedError(
-        this.repository,
+      throw createError({
+        name: NotSupportedError.name,
+        repository: this.repository,
         path,
-        `"${urlType}" is not supported`
-      );
+        e: `"${urlType}" is not supported`,
+      });
     }
     const entry = await this.getEntry(path);
     return entry.toURL();
@@ -215,10 +164,18 @@ export class WfsFileSystem extends AbstractFileSystem {
   private async getEntry(path: string) {
     const fs = await this._getFS();
     return new Promise<FileEntry | DirectoryEntry>((resolve, reject) => {
-      let rejected: FileError;
-      const handle = (err: FileError) => {
-        if (rejected) reject(convertError(this.repository, path, rejected));
-        rejected = err;
+      let rejected: any;
+      const handle = (e: any) => {
+        if (rejected) {
+          reject(
+            createError({
+              repository: this.repository,
+              path,
+              e,
+            })
+          );
+        }
+        rejected = e;
       };
       const fullPath = util.joinPaths(this.rootDir, path);
       fs.root.getFile(fullPath, { create: false }, resolve, handle);

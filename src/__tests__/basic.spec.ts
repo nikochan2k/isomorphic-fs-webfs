@@ -26,7 +26,7 @@ describe("basic", () => {
       await file.stat();
       fail("Found file: " + file.path);
     } catch (e) {
-      expect(e).toBeInstanceOf(NotFoundError);
+      expect(e.name).toBe(NotFoundError.name);
     }
     const buffer = toArrayBuffer("");
     const ws = await file.createWriteStream();
@@ -42,7 +42,7 @@ describe("basic", () => {
       await file.stat();
       fail("Found file: " + file.path);
     } catch (e) {
-      expect(e).toBeInstanceOf(NotFoundError);
+      expect(e.name).toBe(NotFoundError.name);
     }
     const buffer = toArrayBuffer("test");
     const ws = await file.createWriteStream();
@@ -110,7 +110,7 @@ describe("basic", () => {
       await folder.stat();
       fail("Found folder: " + folder.path);
     } catch (e) {
-      expect(e).toBeInstanceOf(NotFoundError);
+      expect(e.name).toBe(NotFoundError.name);
     }
     await folder.mkdir();
     await folder.stat();
@@ -129,7 +129,7 @@ describe("basic", () => {
       await file.stat();
       fail("Found file: " + file.path);
     } catch (e) {
-      expect(e).toBeInstanceOf(NotFoundError);
+      expect(e.name).toBe(NotFoundError.name);
     }
     const ws = await file.createWriteStream();
     const outBuf = toArrayBuffer("Sample");
