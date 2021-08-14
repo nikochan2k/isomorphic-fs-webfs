@@ -1,6 +1,6 @@
 {
   "name": "isomorphic-fs-webfs",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Isomorphic Filesystem for Web File System API",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
