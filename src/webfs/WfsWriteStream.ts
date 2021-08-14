@@ -4,11 +4,12 @@ import {
   createError,
   NoModificationAllowedError,
   OpenWriteOptions,
-  util,
+  binary,
+  path as p,
 } from "isomorphic-fs";
-import { toArrayBuffer } from "isomorphic-fs/lib/util";
 import { WfsFile } from "./WfsFile";
 
+const { toArrayBuffer } = binary;
 export class WfsWriteStream extends AbstractWriteStream {
   private opened = false;
 
@@ -41,7 +42,7 @@ export class WfsWriteStream extends AbstractWriteStream {
     const wf = this.wf;
     const repository = wf.fs.repository;
     const path = wf.path;
-    const fullPath = util.joinPaths(repository, path);
+    const fullPath = p.joinPaths(repository, path);
     const fs = await this.wf.wfs._getFS();
     return new Promise<FileWriter>((resolve, reject) => {
       const handle = (e: any) => reject(createError({ repository, path, e }));

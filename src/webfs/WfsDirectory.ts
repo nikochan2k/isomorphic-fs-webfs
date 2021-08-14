@@ -1,4 +1,4 @@
-import { AbstractDirectory, createError, util } from "isomorphic-fs";
+import { AbstractDirectory, createError, path } from "isomorphic-fs";
 import { WfsFileSystem } from "./WfsFileSystem";
 
 export class WfsDirectory extends AbstractDirectory {
@@ -9,7 +9,7 @@ export class WfsDirectory extends AbstractDirectory {
   public async _list(): Promise<string[]> {
     const fs = await this.wfs._getFS();
     return new Promise<string[]>((resolve, reject) => {
-      const fullPath = util.joinPaths(this.fs.repository, this.path);
+      const fullPath = path.joinPaths(this.fs.repository, this.path);
       fs.root.getDirectory(
         fullPath,
         { create: false },
@@ -49,7 +49,7 @@ export class WfsDirectory extends AbstractDirectory {
   public async _mkcol(): Promise<void> {
     const fs = await this.wfs._getFS();
     return new Promise<void>((resolve, reject) => {
-      const fullPath = util.joinPaths(this.fs.repository, this.path);
+      const fullPath = path.joinPaths(this.fs.repository, this.path);
       fs.root.getDirectory(
         fullPath,
         { create: true },
@@ -79,7 +79,7 @@ export class WfsDirectory extends AbstractDirectory {
   private async _rd(recursive: boolean): Promise<void> {
     const fs = await this.wfs._getFS();
     return new Promise<void>((resolve, reject) => {
-      const fullPath = util.joinPaths(this.fs.repository, this.path);
+      const fullPath = path.joinPaths(this.fs.repository, this.path);
       fs.root.getDirectory(
         fullPath,
         { create: false },

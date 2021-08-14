@@ -1,7 +1,8 @@
-import { NotFoundError, SeekOrigin, util } from "isomorphic-fs";
+import { NotFoundError, SeekOrigin, binary, text } from "isomorphic-fs";
 import { WfsFileSystem } from "../webfs/WfsFileSystem";
 
-const { toArrayBuffer, toString } = util;
+const { toArrayBuffer } = binary;
+const { toText } = text;
 
 const fs = new WfsFileSystem("/isomorphic-fs-test", 50 * 1024 * 1024);
 
@@ -57,7 +58,7 @@ describe("basic", () => {
     const rs = await file.createReadStream();
     const buffer = (await rs.read()) as ArrayBuffer;
     expect(buffer.byteLength).toBe(4);
-    const text = await toString(buffer);
+    const text = await toText(buffer);
     expect(text).toBe("test");
   });
 
@@ -70,12 +71,12 @@ describe("basic", () => {
 
     const rs = await file.createReadStream();
     let buffer = (await rs.read(6)) as ArrayBuffer;
-    let text = await toString(buffer);
+    let text = await toText(buffer);
     expect(text).toBe("大谷");
 
     await rs.seek(6, SeekOrigin.Begin);
     buffer = (await rs.read()) as ArrayBuffer;
-    text = await toString(buffer);
+    text = await toText(buffer);
     expect(text).toBe("翔平");
 
     await ws.seek(0, SeekOrigin.End);
@@ -83,14 +84,14 @@ describe("basic", () => {
 
     await rs.seek(0, SeekOrigin.Begin);
     buffer = (await rs.read()) as ArrayBuffer;
-    text = await toString(buffer);
+    text = await toText(buffer);
     expect(text).toBe("大谷翔平ホームラン");
 
     await rs.seek(0, SeekOrigin.Begin);
     await rs.read(6);
     await rs.seek(6, SeekOrigin.Current);
     buffer = (await rs.read()) as ArrayBuffer;
-    text = await toString(buffer);
+    text = await toText(buffer);
     expect(text).toBe("ホームラン");
 
     await ws.close();
@@ -144,7 +145,7 @@ describe("basic", () => {
 
     const rs = await file.createReadStream();
     const inBuf = (await rs.read()) as ArrayBuffer;
-    const text = await toString(inBuf);
+    const text = await toText(inBuf);
     expect(text).toBe("Sample");
     rs.close();
 

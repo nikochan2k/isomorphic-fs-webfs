@@ -2,10 +2,12 @@ import {
   AbstractReadStream,
   createError,
   OpenOptions,
-  util,
+  binary,
+  path as p,
 } from "isomorphic-fs";
-import { toArrayBuffer } from "./buffer";
 import { WfsFile } from "./WfsFile";
+
+const { toArrayBuffer } = binary;
 
 export class WfsReadStream extends AbstractReadStream {
   constructor(private wf: WfsFile, options: OpenOptions) {
@@ -44,7 +46,7 @@ export class WfsReadStream extends AbstractReadStream {
       const repository = wfs.repository;
       const path = wf.path;
       const handle = (e: any) => reject(createError({ repository, path, e }));
-      const fullPath = util.joinPaths(repository, path);
+      const fullPath = p.joinPaths(repository, path);
       fs.root.getFile(
         fullPath,
         { create: false },

@@ -8,11 +8,11 @@ import {
   NotAllowedError,
   NotSupportedError,
   PatchOptions,
+  path as p,
   Props,
   QuotaExceededError,
   Stats,
   URLType,
-  util,
 } from "isomorphic-fs";
 import { WfsDirectory } from "./WfsDirectory";
 import { WfsFile } from "./WfsFile";
@@ -28,7 +28,7 @@ export class WfsFileSystem extends AbstractFileSystem {
     private size: number,
     options?: FileSystemOptions
   ) {
-    super(util.normalizePath(rootDir), options);
+    super(p.normalizePath(rootDir), options);
     this.rootDir = this.repository;
   }
 
@@ -177,7 +177,7 @@ export class WfsFileSystem extends AbstractFileSystem {
         }
         rejected = e;
       };
-      const fullPath = util.joinPaths(this.rootDir, path);
+      const fullPath = p.joinPaths(this.rootDir, path);
       fs.root.getFile(fullPath, { create: false }, resolve, handle);
       fs.root.getDirectory(fullPath, { create: false }, resolve, handle);
     });
