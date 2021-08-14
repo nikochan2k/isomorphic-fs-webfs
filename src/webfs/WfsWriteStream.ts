@@ -4,12 +4,10 @@ import {
   createError,
   NoModificationAllowedError,
   OpenWriteOptions,
-  binary,
   path as p,
 } from "isomorphic-fs";
 import { WfsFile } from "./WfsFile";
 
-const { toArrayBuffer } = binary;
 export class WfsWriteStream extends AbstractWriteStream {
   private opened = false;
 
@@ -27,7 +25,7 @@ export class WfsWriteStream extends AbstractWriteStream {
 
   public async _write(buffer: ArrayBuffer | Uint8Array): Promise<void> {
     await this._process(async (writer) => {
-      const ab = await toArrayBuffer(buffer);
+      const ab = await this.converter.toArrayBuffer(buffer);
       const blob = new Blob([ab]);
       writer.write(blob);
     });

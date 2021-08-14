@@ -1,74 +1,73 @@
-import { binary, text } from "isomorphic-fs";
+import { conv } from "isomorphic-fs";
 
-const { hasBlob, hasBuffer, toArrayBuffer, toBlob, toBuffer, toUint8Array } =
-  binary;
-const { toBase64, toText } = text;
+const { hasBlob, hasBuffer, Converter } = conv;
+const c = new Converter();
 
 describe("binary", () => {
   it("util/binary ArrayBuffer", async () => {
     const expected = "大谷翔平ホームラン";
-    const ab = await toArrayBuffer(expected, "text");
+    const ab = await c.toArrayBuffer(expected, "Text");
 
     {
-      const actual = await toText(ab);
+      const actual = await c.toText(ab);
       expect(actual).toBe(expected);
     }
 
     {
-      const u8 = await toUint8Array(ab);
-      const actual = await toText(u8);
+      const u8 = await c.toUint8Array(ab);
+      const actual = await c.toText(u8);
       expect(actual).toBe(expected);
     }
 
     if (hasBlob) {
-      const blob = await toBlob(ab);
-      const actual = await toText(blob);
+      const blob = await c.toBlob(ab);
+      const actual = await c.toText(blob);
       expect(actual).toBe(expected);
     }
 
     if (hasBuffer) {
-      const buf = await toBuffer(ab);
-      const actual = await toText(buf);
+      const buf = await c.toBuffer(ab);
+      const actual = await c.toText(buf);
       expect(actual).toBe(expected);
     }
 
     {
-      const base64 = await toBase64(ab);
-      const actual = await toText(base64);
+      const base64 = await c.toBase64(ab);
+      const actual = await c.toText(base64);
       expect(actual).toBe(expected);
     }
   });
 
   it("util/binary Uint8Array", async () => {
     const expected = "大谷翔平ホームラン";
-    const u8 = await toUint8Array(expected, "text");
+    const u8 = await c.toUint8Array(expected, "Text");
 
     {
-      const actual = await toText(u8);
+      const actual = await c.toText(u8);
       expect(actual).toBe(expected);
     }
 
     {
-      const ab = await toArrayBuffer(u8);
-      const actual = await toText(ab);
+      const ab = await c.toArrayBuffer(u8);
+      const actual = await c.toText(ab);
       expect(actual).toBe(expected);
     }
 
     if (hasBlob) {
-      const blob = await toBlob(u8);
-      const actual = await toText(blob);
+      const blob = await c.toBlob(u8);
+      const actual = await c.toText(blob);
       expect(actual).toBe(expected);
     }
 
     if (hasBuffer) {
-      const buf = await toBuffer(u8);
-      const actual = await toText(buf);
+      const buf = await c.toBuffer(u8);
+      const actual = await c.toText(buf);
       expect(actual).toBe(expected);
     }
 
     {
-      const base64 = await toBase64(u8);
-      const actual = await toText(base64);
+      const base64 = await c.toBase64(u8);
+      const actual = await c.toText(base64);
       expect(actual).toBe(expected);
     }
   });
@@ -79,34 +78,34 @@ describe("binary", () => {
     }
 
     const expected = "大谷翔平ホームラン";
-    const buffer = await toBuffer(expected, "text");
+    const buffer = await c.toBuffer(expected, "Text");
 
     {
-      const actual = await toText(buffer);
+      const actual = await c.toText(buffer);
       expect(actual).toBe(expected);
     }
 
     {
-      const ab = await toArrayBuffer(buffer);
-      const actual = await toText(ab);
+      const ab = await c.toArrayBuffer(buffer);
+      const actual = await c.toText(ab);
       expect(actual).toBe(expected);
     }
 
     {
-      const u8 = await toUint8Array(buffer);
-      const actual = await toText(u8);
+      const u8 = await c.toUint8Array(buffer);
+      const actual = await c.toText(u8);
       expect(actual).toBe(expected);
     }
 
     if (hasBlob) {
-      const blob = await toBlob(buffer);
-      const actual = await toText(blob);
+      const blob = await c.toBlob(buffer);
+      const actual = await c.toText(blob);
       expect(actual).toBe(expected);
     }
 
     {
-      const base64 = await toBase64(buffer);
-      const actual = await toText(base64);
+      const base64 = await c.toBase64(buffer);
+      const actual = await c.toText(base64);
       expect(actual).toBe(expected);
     }
   });
@@ -117,34 +116,34 @@ describe("binary", () => {
     }
 
     const expected = "大谷翔平ホームラン";
-    const base64 = await toBase64(expected);
+    const base64 = await c.toBase64(expected);
 
     {
-      const actual = await toText(base64);
+      const actual = await c.toText(base64);
       expect(actual).toBe(expected);
     }
 
     {
-      const ab = await toArrayBuffer(base64, "base64");
-      const actual = await toText(ab);
+      const ab = await c.toArrayBuffer(base64, "Base64");
+      const actual = await c.toText(ab);
       expect(actual).toBe(expected);
     }
 
     {
-      const u8 = await toUint8Array(base64, "base64");
-      const actual = await toText(u8);
+      const u8 = await c.toUint8Array(base64, "Base64");
+      const actual = await c.toText(u8);
       expect(actual).toBe(expected);
     }
 
     if (hasBlob) {
-      const blob = await toBlob(base64, "base64");
-      const actual = await toText(blob);
+      const blob = await c.toBlob(base64, "Base64");
+      const actual = await c.toText(blob);
       expect(actual).toBe(expected);
     }
 
     if (hasBuffer) {
-      const buf = await toBuffer(base64, "base64");
-      const actual = await toText(buf);
+      const buf = await c.toBuffer(base64, "Base64");
+      const actual = await c.toText(buf);
       expect(actual).toBe(expected);
     }
   });

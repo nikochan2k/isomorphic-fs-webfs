@@ -2,12 +2,9 @@ import {
   AbstractReadStream,
   createError,
   OpenOptions,
-  binary,
   path as p,
 } from "isomorphic-fs";
 import { WfsFile } from "./WfsFile";
-
-const { toArrayBuffer } = binary;
 
 export class WfsReadStream extends AbstractReadStream {
   constructor(private wf: WfsFile, options: OpenOptions) {
@@ -18,7 +15,7 @@ export class WfsReadStream extends AbstractReadStream {
     this._dispose();
   }
 
-  public async _read(size?: number): Promise<ArrayBuffer | null> {
+  public async _read(size?: number): Promise<Uint8Array | null> {
     const file = await this._open();
     if (file.size <= this.position) {
       return null;
@@ -28,7 +25,7 @@ export class WfsReadStream extends AbstractReadStream {
       end = file.size;
     }
     const blob = file.slice(this.position, end);
-    const buffer = await toArrayBuffer(blob);
+    const buffer = await this.converter.toUint8Array(blob);
     return buffer;
   }
 
