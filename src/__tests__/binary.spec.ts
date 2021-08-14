@@ -7,7 +7,7 @@ const { toBase64, toText } = text;
 describe("binary", () => {
   it("util/binary ArrayBuffer", async () => {
     const expected = "大谷翔平ホームラン";
-    const ab = await toArrayBuffer(expected, "utf8");
+    const ab = await toArrayBuffer(expected, "text");
 
     {
       const actual = await toText(ab);
@@ -41,7 +41,7 @@ describe("binary", () => {
 
   it("util/binary Uint8Array", async () => {
     const expected = "大谷翔平ホームラン";
-    const u8 = await toUint8Array(expected);
+    const u8 = await toUint8Array(expected, "text");
 
     {
       const actual = await toText(u8);
@@ -79,7 +79,7 @@ describe("binary", () => {
     }
 
     const expected = "大谷翔平ホームラン";
-    const buffer = await toBuffer(expected);
+    const buffer = await toBuffer(expected, "text");
 
     {
       const actual = await toText(buffer);
