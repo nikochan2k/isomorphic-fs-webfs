@@ -55,9 +55,9 @@ describe("basic", () => {
   it("read text file", async () => {
     const file = await fs.getFile("/test.txt");
     const rs = await file.createReadStream();
-    const buffer = (await rs.read()) as ArrayBuffer;
-    expect(buffer.byteLength).toBe(4);
-    const text = await c.toText(buffer);
+    const blob = (await rs.read()) as Blob;
+    expect(blob.size).toBe(4);
+    const text = await c.toText(blob);
     expect(text).toBe("test");
   });
 
@@ -69,29 +69,27 @@ describe("basic", () => {
     await ws.write(await c.toArrayBuffer({ value: "翔平", encoding: "Text" }));
 
     const rs = await file.createReadStream();
-    let buffer = (await rs.read(6)) as ArrayBuffer;
+    let buffer = (await rs.read(6)) as Blob;
     let text = await c.toText(buffer);
     expect(text).toBe("大谷");
 
     await rs.seek(6, SeekOrigin.Begin);
-    buffer = (await rs.read()) as ArrayBuffer;
+    buffer = (await rs.read()) as Blob;
     text = await c.toText(buffer);
     expect(text).toBe("翔平");
 
     await ws.seek(0, SeekOrigin.End);
-    await ws.write(
-      await c.toArrayBuffer({ value: "ホームラン", encoding: "Text" })
-    );
+    await ws.write(await c.toBlob({ value: "ホームラン", encoding: "Text" }));
 
     await rs.seek(0, SeekOrigin.Begin);
-    buffer = (await rs.read()) as ArrayBuffer;
+    buffer = (await rs.read()) as Blob;
     text = await c.toText(buffer);
     expect(text).toBe("大谷翔平ホームラン");
 
     await rs.seek(0, SeekOrigin.Begin);
     await rs.read(6);
     await rs.seek(6, SeekOrigin.Current);
-    buffer = (await rs.read()) as ArrayBuffer;
+    buffer = (await rs.read()) as Blob;
     text = await c.toText(buffer);
     expect(text).toBe("ホームラン");
 
@@ -145,7 +143,7 @@ describe("basic", () => {
     expect(before <= modified && modified <= after).toBe(true);
 
     const rs = await file.createReadStream();
-    const inBuf = (await rs.read()) as ArrayBuffer;
+    const inBuf = (await rs.read()) as Blob;
     const text = await c.toText(inBuf);
     expect(text).toBe("Sample");
     rs.close();

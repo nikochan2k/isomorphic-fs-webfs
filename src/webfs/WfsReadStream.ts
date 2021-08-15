@@ -1,14 +1,16 @@
 import {
   AbstractReadStream,
   createError,
-  OpenOptions,
+  OpenReadOptions,
   path as p,
+  Source,
+  SourceType,
 } from "isomorphic-fs";
 import { WfsFile } from "./WfsFile";
 import { WfsFileSystem } from "./WfsFileSystem";
 
 export class WfsReadStream extends AbstractReadStream {
-  constructor(file: WfsFile, options: OpenOptions) {
+  constructor(file: WfsFile, options: OpenReadOptions) {
     super(file, options);
   }
 
@@ -16,22 +18,25 @@ export class WfsReadStream extends AbstractReadStream {
     this._dispose();
   }
 
-  public async _read(size?: number): Promise<Uint8Array | null> {
+  public async _read(size?: number): Promise<Source | null> {
     const file = await this._open();
-    if (file.size <= this.position) {
+    const fileSize = file.size;
+    if (fileSize <= this.position) {
       return null;
     }
     let end = this.position + (size == null ? this.bufferSize : size);
-    if (file.size < end) {
-      end = file.size;
+    if (fileSize < end) {
+      end = fileSize;
     }
-    const blob = file.slice(this.position, end);
-    const buffer = await this.converter.toUint8Array(blob);
-    return buffer;
+    return file.slice(this.position, end);
   }
 
   protected async _seek(start: number): Promise<void> {
     this.position = start;
+  }
+
+  protected getDefaultSourceType(): SourceType {
+    return "Blob";
   }
 
   private _dispose() {}
