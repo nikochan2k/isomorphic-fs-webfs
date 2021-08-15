@@ -7,12 +7,13 @@ import {
   path as p,
 } from "isomorphic-fs";
 import { WfsFile } from "./WfsFile";
+import { WfsFileSystem } from "./WfsFileSystem";
 
 export class WfsWriteStream extends AbstractWriteStream {
   private opened = false;
 
-  constructor(private wf: WfsFile, options: OpenWriteOptions) {
-    super(wf, options);
+  constructor(file: WfsFile, options: OpenWriteOptions) {
+    super(file, options);
   }
 
   public async _close(): Promise<void> {
@@ -37,11 +38,11 @@ export class WfsWriteStream extends AbstractWriteStream {
   }
 
   private async _getWriter(): Promise<FileWriter> {
-    const wf = this.wf;
-    const repository = wf.fs.repository;
-    const path = wf.path;
+    const file = this.file as WfsFile;
+    const repository = file.fs.repository;
+    const path = file.path;
     const fullPath = p.joinPaths(repository, path);
-    const fs = await this.wf.wfs._getFS();
+    const fs = await (file.fs as WfsFileSystem)._getFS();
     return new Promise<FileWriter>((resolve, reject) => {
       const handle = (e: any) => reject(createError({ repository, path, e }));
       fs.root.getFile(
@@ -55,7 +56,7 @@ export class WfsWriteStream extends AbstractWriteStream {
             } else {
               this.opened = true;
               if (this.options.append) {
-                const stats = await wf.head();
+                const stats = await file.head();
                 const size = stats.size as number;
                 writer.seek(size);
                 this.position = size;
@@ -104,9 +105,9 @@ export class WfsWriteStream extends AbstractWriteStream {
   private async _process(handle: (writer: FileWriter) => void) {
     const writer = await this._getWriter();
     return new Promise<void>((resolve, reject) => {
-      const wf = this.wf;
-      const repository = wf.fs.repository;
-      const path = wf.path;
+      const file = this.file;
+      const repository = file.fs.repository;
+      const path = file.path;
       writer.onabort = (e) =>
         reject(
           createError({

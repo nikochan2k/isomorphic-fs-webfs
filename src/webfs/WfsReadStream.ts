@@ -5,10 +5,11 @@ import {
   path as p,
 } from "isomorphic-fs";
 import { WfsFile } from "./WfsFile";
+import { WfsFileSystem } from "./WfsFileSystem";
 
 export class WfsReadStream extends AbstractReadStream {
-  constructor(private wf: WfsFile, options: OpenOptions) {
-    super(wf, options);
+  constructor(file: WfsFile, options: OpenOptions) {
+    super(file, options);
   }
 
   public async _close(): Promise<void> {
@@ -36,12 +37,12 @@ export class WfsReadStream extends AbstractReadStream {
   private _dispose() {}
 
   private async _open(): Promise<File> {
-    const wf = this.wf;
-    const wfs = wf.wfs;
+    const file = this.file as WfsFile;
+    const wfs = file.fs as WfsFileSystem;
     const fs = await wfs._getFS();
     return new Promise<File>(async (resolve, reject) => {
       const repository = wfs.repository;
-      const path = wf.path;
+      const path = file.path;
       const handle = (e: any) => reject(createError({ repository, path, e }));
       const fullPath = p.joinPaths(repository, path);
       fs.root.getFile(

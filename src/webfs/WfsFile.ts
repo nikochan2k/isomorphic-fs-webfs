@@ -12,8 +12,8 @@ import { WfsFileSystem } from "./WfsFileSystem";
 import { WfsReadStream } from "./WfsReadStream";
 
 export class WfsFile extends AbstractFile {
-  constructor(public wfs: WfsFileSystem, path: string) {
-    super(wfs, path);
+  constructor(file: WfsFileSystem, path: string) {
+    super(file, path);
   }
 
   public async _createReadStream(
@@ -25,7 +25,7 @@ export class WfsFile extends AbstractFile {
   public async _createWriteStream(
     options: OpenWriteOptions
   ): Promise<AbstractWriteStream> {
-    const fs = await this.wfs._getFS();
+    const fs = await (this.fs as WfsFileSystem)._getFS();
     if (options.create) {
       await new Promise<void>((resolve, reject) => {
         const fullPath = path.joinPaths(this.fs.repository, this.path);
@@ -48,7 +48,7 @@ export class WfsFile extends AbstractFile {
   }
 
   public async _rm(): Promise<void> {
-    const fs = await this.wfs._getFS();
+    const fs = await (this.fs as WfsFileSystem)._getFS();
     return new Promise<void>((resolve, reject) => {
       const fullPath = path.joinPaths(this.fs.repository, this.path);
       fs.root.getFile(
