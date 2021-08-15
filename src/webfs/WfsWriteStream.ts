@@ -5,6 +5,7 @@ import {
   NoModificationAllowedError,
   OpenWriteOptions,
   path as p,
+  Source,
 } from "isomorphic-fs";
 import { WfsFile } from "./WfsFile";
 import { WfsFileSystem } from "./WfsFileSystem";
@@ -24,12 +25,12 @@ export class WfsWriteStream extends AbstractWriteStream {
     await this._process((writer) => writer.truncate(size));
   }
 
-  public async _write(buffer: ArrayBuffer | Uint8Array): Promise<void> {
+  public async _write(src: Source): Promise<number> {
+    const blob = await this.converter.toBlob(src);
     await this._process(async (writer) => {
-      const ab = await this.converter.toArrayBuffer(buffer);
-      const blob = new Blob([ab]);
       writer.write(blob);
     });
+    return blob.size;
   }
 
   protected async _seek(start: number): Promise<void> {
