@@ -1,7 +1,8 @@
-import { NotFoundError, SeekOrigin, conv } from "isomorphic-fs";
-import { WfsFileSystem } from "../webfs/WfsFileSystem";
+import { Converter } from "univ-conv";
+import { NotFoundError, SeekOrigin } from "univ-fs";
+import { WfsFileSystem } from "../WfsFileSystem";
 
-const c = new conv.Converter();
+const c = new Converter();
 
 const fs = new WfsFileSystem("/isomorphic-fs-test", 50 * 1024 * 1024);
 

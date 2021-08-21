@@ -5,15 +5,16 @@ import {
   File,
   FileSystemOptions,
   HeadOptions,
+  joinPaths,
+  normalizePath,
   NotAllowedError,
   NotSupportedError,
   PatchOptions,
-  path as p,
   Props,
   QuotaExceededError,
   Stats,
   URLType,
-} from "isomorphic-fs";
+} from "univ-fs";
 import { WfsDirectory } from "./WfsDirectory";
 import { WfsFile } from "./WfsFile";
 
@@ -28,7 +29,7 @@ export class WfsFileSystem extends AbstractFileSystem {
     private size: number,
     options?: FileSystemOptions
   ) {
-    super(p.normalizePath(rootDir), options);
+    super(normalizePath(rootDir), options);
     this.rootDir = this.repository;
   }
 
@@ -177,7 +178,7 @@ export class WfsFileSystem extends AbstractFileSystem {
         }
         rejected = e;
       };
-      const fullPath = p.joinPaths(this.rootDir, path);
+      const fullPath = joinPaths(this.rootDir, path);
       fs.root.getFile(fullPath, { create: false }, resolve, handle);
       fs.root.getDirectory(fullPath, { create: false }, resolve, handle);
     });

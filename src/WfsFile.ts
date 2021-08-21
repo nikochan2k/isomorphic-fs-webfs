@@ -5,8 +5,8 @@ import {
   createError,
   OpenOptions,
   OpenWriteOptions,
-  path,
-} from "isomorphic-fs";
+  joinPaths,
+} from "univ-fs";
 import { WfsWriteStream } from "./WfsWriteStream";
 import { WfsFileSystem } from "./WfsFileSystem";
 import { WfsReadStream } from "./WfsReadStream";
@@ -28,7 +28,7 @@ export class WfsFile extends AbstractFile {
     const fs = await (this.fs as WfsFileSystem)._getFS();
     if (options.create) {
       await new Promise<void>((resolve, reject) => {
-        const fullPath = path.joinPaths(this.fs.repository, this.path);
+        const fullPath = joinPaths(this.fs.repository, this.path);
         fs.root.getFile(
           fullPath,
           { create: true },
@@ -50,7 +50,7 @@ export class WfsFile extends AbstractFile {
   public async _rm(): Promise<void> {
     const fs = await (this.fs as WfsFileSystem)._getFS();
     return new Promise<void>((resolve, reject) => {
-      const fullPath = path.joinPaths(this.fs.repository, this.path);
+      const fullPath = joinPaths(this.fs.repository, this.path);
       fs.root.getFile(
         fullPath,
         { create: false },

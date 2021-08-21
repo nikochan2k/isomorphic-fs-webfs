@@ -1,6 +1,5 @@
-import { conv } from "isomorphic-fs";
+import { Converter, hasBlob, hasBuffer } from "univ-conv";
 
-const { hasBlob, hasBuffer, Converter } = conv;
 const c = new Converter();
 
 describe("binary", () => {

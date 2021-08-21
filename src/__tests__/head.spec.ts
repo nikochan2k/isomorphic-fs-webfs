@@ -1,5 +1,5 @@
-import { NotFoundError } from "isomorphic-fs";
-import { WfsFileSystem } from "../webfs/WfsFileSystem";
+import { NotFoundError } from "univ-fs";
+import { WfsFileSystem } from "../WfsFileSystem";
 
 const fs = new WfsFileSystem("/isomorphic-fs-test", 50 * 1024 * 1024);
 

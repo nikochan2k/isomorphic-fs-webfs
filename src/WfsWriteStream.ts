@@ -2,11 +2,11 @@ import {
   AbortError,
   AbstractWriteStream,
   createError,
+  joinPaths,
   NoModificationAllowedError,
   OpenWriteOptions,
-  path as p,
   Source,
-} from "isomorphic-fs";
+} from "univ-fs";
 import { WfsFile } from "./WfsFile";
 import { WfsFileSystem } from "./WfsFileSystem";
 
@@ -42,7 +42,7 @@ export class WfsWriteStream extends AbstractWriteStream {
     const file = this.file as WfsFile;
     const repository = file.fs.repository;
     const path = file.path;
-    const fullPath = p.joinPaths(repository, path);
+    const fullPath = joinPaths(repository, path);
     const fs = await (file.fs as WfsFileSystem)._getFS();
     return new Promise<FileWriter>((resolve, reject) => {
       const handle = (e: any) => reject(createError({ repository, path, e }));

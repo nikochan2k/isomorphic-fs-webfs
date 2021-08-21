@@ -2,10 +2,10 @@ import {
   AbstractReadStream,
   createError,
   OpenReadOptions,
-  path as p,
+  joinPaths,
   Source,
   SourceType,
-} from "isomorphic-fs";
+} from "univ-fs";
 import { WfsFile } from "./WfsFile";
 import { WfsFileSystem } from "./WfsFileSystem";
 
@@ -49,7 +49,7 @@ export class WfsReadStream extends AbstractReadStream {
       const repository = wfs.repository;
       const path = file.path;
       const handle = (e: any) => reject(createError({ repository, path, e }));
-      const fullPath = p.joinPaths(repository, path);
+      const fullPath = joinPaths(repository, path);
       fs.root.getFile(
         fullPath,
         { create: false },
