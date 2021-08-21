@@ -1,7 +1,7 @@
 {
   "name": "univ-fs-webfs",
   "version": "0.1.2",
-  "description": "Isomorphic Filesystem for Web File System API",
+  "description": "Universal Filesystem for Web File System API",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "typings": "lib/index.d.ts",
