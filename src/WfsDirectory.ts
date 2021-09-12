@@ -72,10 +72,6 @@ export class WfsDirectory extends AbstractDirectory {
     return this._rd(false);
   }
 
-  public _rmdirRecursively(): Promise<void> {
-    return this._rd(true);
-  }
-
   private async _rd(recursive: boolean): Promise<void> {
     const fs = await this.wfs._getFS();
     return new Promise<void>((resolve, reject) => {

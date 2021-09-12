@@ -110,7 +110,7 @@ export class WfsFileSystem extends AbstractFileSystem {
   }
 
   public async _head(path: string, _options: HeadOptions): Promise<Stats> {
-    const entry = await this.getEntry(path);
+    const entry = await this.getFileSystemEntry(path);
     return new Promise<Stats>((resolve, reject) => {
       entry.getMetadata(
         (metadata) => {
@@ -158,29 +158,31 @@ export class WfsFileSystem extends AbstractFileSystem {
         e: `"${urlType}" is not supported`,
       });
     }
-    const entry = await this.getEntry(path);
+    const entry = await this.getFileSystemEntry(path);
     return entry.toURL();
   }
 
-  private async getEntry(path: string) {
+  private async getFileSystemEntry(path: string) {
     const fs = await this._getFS();
-    return new Promise<FileEntry | DirectoryEntry>((resolve, reject) => {
-      let rejected: any;
-      const handle = (e: any) => {
-        if (rejected) {
-          reject(
-            createError({
-              repository: this.repository,
-              path,
-              e,
-            })
-          );
-        }
-        rejected = e;
-      };
-      const fullPath = joinPaths(this.rootDir, path);
-      fs.root.getFile(fullPath, { create: false }, resolve, handle);
-      fs.root.getDirectory(fullPath, { create: false }, resolve, handle);
-    });
+    return new Promise<FileSystemFileEntry | FileSystemDirectoryEntry>(
+      (resolve, reject) => {
+        let rejected: any;
+        const handle = (e: any) => {
+          if (rejected) {
+            reject(
+              createError({
+                repository: this.repository,
+                path,
+                e,
+              })
+            );
+          }
+          rejected = e;
+        };
+        const fullPath = joinPaths(this.rootDir, path);
+        fs.root.getFile(fullPath, { create: false }, resolve, handle);
+        fs.root.getDirectory(fullPath, { create: false }, resolve, handle);
+      }
+    );
   }
 }

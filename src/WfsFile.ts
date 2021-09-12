@@ -3,13 +3,14 @@ import {
   AbstractReadStream,
   AbstractWriteStream,
   createError,
+  FileSystem,
+  joinPaths,
   OpenOptions,
   OpenWriteOptions,
-  joinPaths,
 } from "univ-fs";
-import { WfsWriteStream } from "./WfsWriteStream";
 import { WfsFileSystem } from "./WfsFileSystem";
 import { WfsReadStream } from "./WfsReadStream";
+import { WfsWriteStream } from "./WfsWriteStream";
 
 export class WfsFile extends AbstractFile {
   constructor(file: WfsFileSystem, path: string) {
@@ -48,7 +49,7 @@ export class WfsFile extends AbstractFile {
   }
 
   public async _rm(): Promise<void> {
-    const fs = await (this.fs as WfsFileSystem)._getFS();
+    const fs = await (this.fs as FileSystem as WfsFileSystem)._getFS();
     return new Promise<void>((resolve, reject) => {
       const fullPath = joinPaths(this.fs.repository, this.path);
       fs.root.getFile(

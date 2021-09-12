@@ -30,23 +30,23 @@
     "web-test": "npm-run-all web-build karma"
   },
   "devDependencies": {
-    "@types/jasmine": "^3.8.2",
-    "@types/node": "^16.7.1",
-    "expect": "^27.0.6",
-    "jasmine": "^3.8.0",
+    "@types/jasmine": "^3.9.0",
+    "@types/node": "^16.9.1",
+    "expect": "^27.1.1",
+    "jasmine": "^3.9.0",
     "karma": "^6.3.4",
     "karma-chrome-launcher": "^3.1.0",
     "karma-jasmine": "^4.0.1",
     "npm-run-all": "^4.1.5",
     "rimraf": "^3.0.2",
     "ts-loader": "^9.2.5",
-    "typescript": "^4.3.5",
-    "webpack": "^5.51.1",
+    "typescript": "^4.4.3",
+    "webpack": "^5.52.1",
     "webpack-cli": "^4.8.0"
   },
   "dependencies": {
     "tslib": "^2.3.1",
-    "univ-fs": "^0.1.6"
+    "univ-fs": "^0.1.18"
   },
   "author": "Yoshihiro Seki",
   "license": "MIT"
