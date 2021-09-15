@@ -68,11 +68,7 @@ export class WfsDirectory extends AbstractDirectory {
     });
   }
 
-  public _rmdir(): Promise<void> {
-    return this._rd(false);
-  }
-
-  private async _rd(recursive: boolean): Promise<void> {
+  public async _rmdir(): Promise<void> {
     const fs = await this.wfs._getFS();
     return new Promise<void>((resolve, reject) => {
       const fullPath = joinPaths(this.fs.repository, this.path);
@@ -90,11 +86,7 @@ export class WfsDirectory extends AbstractDirectory {
                 })
               )
             );
-          if (recursive) {
-            entry.removeRecursively(resolve, handle);
-          } else {
-            entry.remove(resolve, handle);
-          }
+          entry.remove(resolve, handle);
         },
         (e) =>
           reject(
