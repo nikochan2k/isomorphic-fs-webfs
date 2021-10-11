@@ -10,8 +10,8 @@ import { WfsFile } from "./WfsFile";
 import { WfsFileSystem } from "./WfsFileSystem";
 
 export class WfsReadStream extends AbstractReadStream {
-  constructor(file: WfsFile, options: OpenReadOptions) {
-    super(file, options);
+  constructor(private wfsFile: WfsFile, options: OpenReadOptions) {
+    super(wfsFile, options);
   }
 
   public async _close(): Promise<void> {
@@ -42,12 +42,12 @@ export class WfsReadStream extends AbstractReadStream {
   private _dispose() {}
 
   private async _open(): Promise<File> {
-    const file = this.file as WfsFile;
-    const wfs = file.fs as WfsFileSystem;
-    const fs = await wfs._getFS();
+    const wfsFile = this.wfsFile;
+    const wfsFS = wfsFile.wfsFS;
+    const fs = await wfsFS._getFS();
     return new Promise<File>(async (resolve, reject) => {
-      const repository = wfs.repository;
-      const path = file.path;
+      const repository = wfsFS.repository;
+      const path = wfsFile.path;
       const handle = (e: any) => reject(createError({ repository, path, e }));
       const fullPath = joinPaths(repository, path);
       fs.root.getFile(

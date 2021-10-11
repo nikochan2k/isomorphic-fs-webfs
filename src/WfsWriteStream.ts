@@ -13,8 +13,8 @@ import { WfsFileSystem } from "./WfsFileSystem";
 export class WfsWriteStream extends AbstractWriteStream {
   private opened = false;
 
-  constructor(file: WfsFile, options: OpenWriteOptions) {
-    super(file, options);
+  constructor(private wfsFile: WfsFile, options: OpenWriteOptions) {
+    super(wfsFile, options);
   }
 
   public async _close(): Promise<void> {
@@ -39,11 +39,11 @@ export class WfsWriteStream extends AbstractWriteStream {
   }
 
   private async _getWriter(): Promise<FileWriter> {
-    const file = this.file as WfsFile;
-    const repository = file.fs.repository;
-    const path = file.path;
+    const wfsFile = this.wfsFile;
+    const repository = wfsFile.fs.repository;
+    const path = wfsFile.path;
     const fullPath = joinPaths(repository, path);
-    const fs = await (file.fs as WfsFileSystem)._getFS();
+    const fs = await wfsFile.wfsFS._getFS();
     return new Promise<FileWriter>((resolve, reject) => {
       const handle = (e: any) => reject(createError({ repository, path, e }));
       fs.root.getFile(
@@ -57,7 +57,7 @@ export class WfsWriteStream extends AbstractWriteStream {
             } else {
               this.opened = true;
               if (this.options.append) {
-                const stats = await file.head();
+                const stats = await wfsFile.head();
                 const size = stats.size as number;
                 writer.seek(size);
                 this.position = size;

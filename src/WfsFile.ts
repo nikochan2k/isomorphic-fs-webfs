@@ -13,8 +13,8 @@ import { WfsReadStream } from "./WfsReadStream";
 import { WfsWriteStream } from "./WfsWriteStream";
 
 export class WfsFile extends AbstractFile {
-  constructor(file: WfsFileSystem, path: string) {
-    super(file, path);
+  constructor(public wfsFS: WfsFileSystem, path: string) {
+    super(wfsFS, path);
   }
 
   public async _createReadStream(
@@ -24,12 +24,14 @@ export class WfsFile extends AbstractFile {
   }
 
   public async _createWriteStream(
+    post: boolean,
     options: OpenWriteOptions
   ): Promise<AbstractWriteStream> {
-    const fs = await (this.fs as WfsFileSystem)._getFS();
-    if (options.create) {
+    const wfsFS = this.wfsFS;
+    const fs = await wfsFS._getFS();
+    if (post) {
       await new Promise<void>((resolve, reject) => {
-        const fullPath = joinPaths(this.fs.repository, this.path);
+        const fullPath = joinPaths(wfsFS.repository, this.path);
         fs.root.getFile(
           fullPath,
           { create: true },
@@ -37,7 +39,7 @@ export class WfsFile extends AbstractFile {
           (e) =>
             reject(
               createError({
-                repository: this.fs.repository,
+                repository: wfsFS.repository,
                 path: this.path,
                 e,
               })
@@ -49,9 +51,10 @@ export class WfsFile extends AbstractFile {
   }
 
   public async _rm(): Promise<void> {
-    const fs = await (this.fs as FileSystem as WfsFileSystem)._getFS();
+    const wfsFS = this.wfsFS;
+    const fs = await wfsFS._getFS();
     return new Promise<void>((resolve, reject) => {
-      const fullPath = joinPaths(this.fs.repository, this.path);
+      const fullPath = joinPaths(wfsFS.repository, this.path);
       fs.root.getFile(
         fullPath,
         { create: false },
@@ -59,7 +62,7 @@ export class WfsFile extends AbstractFile {
           entry.remove(resolve, (e) =>
             reject(
               createError({
-                repository: this.fs.repository,
+                repository: wfsFS.repository,
                 path: this.path,
                 e,
               })
