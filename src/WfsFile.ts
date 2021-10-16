@@ -47,8 +47,12 @@ export class WfsFile extends AbstractFile {
       });
     }
     const ws = new WfsWriteStream(this, options);
-    if (!options.create && options.append) {
-      await ws.seek(0, SeekOrigin.End);
+    if (!options.create) {
+      if (options.append) {
+        await ws.seek(0, SeekOrigin.End);
+      } else {
+        await ws._truncate(0);
+      }
     }
     return ws;
   }
