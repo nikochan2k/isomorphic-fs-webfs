@@ -1,13 +1,12 @@
 import {
   AbstractReadStream,
   createError,
-  OpenReadOptions,
   joinPaths,
+  OpenReadOptions,
   Source,
   SourceType,
 } from "univ-fs";
 import { WfsFile } from "./WfsFile";
-import { WfsFileSystem } from "./WfsFileSystem";
 
 export class WfsReadStream extends AbstractReadStream {
   constructor(private wfsFile: WfsFile, options: OpenReadOptions) {
@@ -31,9 +30,7 @@ export class WfsReadStream extends AbstractReadStream {
     return file.slice(this.position, end);
   }
 
-  protected async _seek(start: number): Promise<void> {
-    this.position = start;
-  }
+  protected async _seek(_start: number): Promise<void> {}
 
   protected getDefaultSourceType(): SourceType {
     return "Blob";
@@ -53,11 +50,7 @@ export class WfsReadStream extends AbstractReadStream {
       fs.root.getFile(
         fullPath,
         { create: false },
-        (entry) => {
-          entry.file((file) => {
-            resolve(file);
-          }, handle);
-        },
+        (entry) => entry.file((file) => resolve(file), handle),
         handle
       );
     });

@@ -3,7 +3,6 @@ import {
   AbstractReadStream,
   AbstractWriteStream,
   createError,
-  FileSystem,
   joinPaths,
   OpenOptions,
   OpenWriteOptions,

@@ -8,7 +8,6 @@ import {
   Source,
 } from "univ-fs";
 import { WfsFile } from "./WfsFile";
-import { WfsFileSystem } from "./WfsFileSystem";
 
 export class WfsWriteStream extends AbstractWriteStream {
   private opened = false;
