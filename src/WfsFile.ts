@@ -6,6 +6,7 @@ import {
   joinPaths,
   OpenOptions,
   OpenWriteOptions,
+  SeekOrigin,
 } from "univ-fs";
 import { WfsFileSystem } from "./WfsFileSystem";
 import { WfsReadStream } from "./WfsReadStream";
@@ -23,17 +24,16 @@ export class WfsFile extends AbstractFile {
   }
 
   public async _createWriteStream(
-    post: boolean,
     options: OpenWriteOptions
   ): Promise<AbstractWriteStream> {
     const wfsFS = this.wfsFS;
     const fs = await wfsFS._getFS();
-    if (post) {
+    if (options.create) {
       await new Promise<void>((resolve, reject) => {
         const fullPath = joinPaths(wfsFS.repository, this.path);
         fs.root.getFile(
           fullPath,
-          { create: true },
+          { create: true, exclusive: true },
           () => resolve(),
           (e) =>
             reject(
@@ -46,7 +46,11 @@ export class WfsFile extends AbstractFile {
         );
       });
     }
-    return new WfsWriteStream(this, options);
+    const ws = new WfsWriteStream(this, options);
+    if (!options.create && options.append) {
+      await ws.seek(0, SeekOrigin.End);
+    }
+    return ws;
   }
 
   public async _rm(): Promise<void> {

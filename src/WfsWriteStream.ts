@@ -26,7 +26,7 @@ export class WfsWriteStream extends AbstractWriteStream {
 
   public async _write(src: Source): Promise<number> {
     const blob = await this.converter.toBlob(src);
-    await this._process(async (writer) => {
+    await this._process((writer) => {
       writer.write(blob);
     });
     return blob.size;
