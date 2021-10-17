@@ -134,11 +134,16 @@ export class WfsFileSystem extends AbstractFileSystem {
   }
 
   public _patch(
-    _path: string,
+    path: string,
     _props: Props,
     _options: PatchOptions
   ): Promise<void> {
-    throw new Error("Method not implemented.");
+    throw createError({
+      name: NotSupportedError.name,
+      repository: this.repository,
+      path,
+      e: "patch is not supported",
+    });
   }
 
   public async getDirectory(path: string): Promise<Directory> {
