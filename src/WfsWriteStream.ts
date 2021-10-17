@@ -63,9 +63,9 @@ export class WfsWriteStream extends AbstractWriteStream {
                 resolve(writer);
               } else {
                 const removeEvents = () => {
-                  writer.onabort = undefined as any;
-                  writer.onerror = undefined as any;
-                  writer.onwriteend = undefined as any;
+                  delete (writer as any).onabort;
+                  delete (writer as any).onerror;
+                  delete (writer as any).onwriteend;
                 };
                 writer.onabort = (e) => {
                   removeEvents();
