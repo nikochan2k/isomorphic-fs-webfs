@@ -21,7 +21,6 @@ const requestFileSystem =
   window.requestFileSystem || (window as any).webkitRequestFileSystem;
 export class WfsFileSystem extends AbstractFileSystem {
   private fs?: FileSystem;
-  private rootDir: string;
 
   constructor(
     rootDir: string,
@@ -29,13 +28,15 @@ export class WfsFileSystem extends AbstractFileSystem {
     options?: FileSystemOptions
   ) {
     super(normalizePath(rootDir), options);
-    this.rootDir = this.repository;
   }
 
   public async _getFS() {
     if (this.fs) {
       return this.fs;
     }
+
+    const repository = this.repository;
+
     if ((window as any).webkitStorageInfo) {
       await new Promise<void>((resolve, reject) => {
         const webkitStorageInfo = (window as any).webkitStorageInfo;
@@ -47,7 +48,7 @@ export class WfsFileSystem extends AbstractFileSystem {
             reject(
               createError({
                 name: QuotaExceededError.name,
-                repository: this.repository,
+                repository,
                 path: "",
                 e,
               })
@@ -65,7 +66,7 @@ export class WfsFileSystem extends AbstractFileSystem {
             reject(
               createError({
                 name: QuotaExceededError.name,
-                repository: this.repository,
+                repository,
                 path: "",
                 e,
               })
@@ -82,7 +83,7 @@ export class WfsFileSystem extends AbstractFileSystem {
           reject(
             createError({
               name: NotAllowedError.name,
-              repository: this.repository,
+              repository,
               path: "",
               e,
             })
@@ -91,13 +92,13 @@ export class WfsFileSystem extends AbstractFileSystem {
     });
     await new Promise<void>((resolve, reject) => {
       fs.root.getDirectory(
-        this.repository,
+        repository,
         { create: true },
         () => resolve(),
         (e) =>
           reject(
             createError({
-              repository: this.repository,
+              repository,
               path: "",
               e,
             })
@@ -174,23 +175,19 @@ export class WfsFileSystem extends AbstractFileSystem {
   }
 
   private async getFileSystemEntry(path: string) {
+    const repository = this.repository;
+
     const fs = await this._getFS();
     return new Promise<FileSystemFileEntry | FileSystemDirectoryEntry>(
       (resolve, reject) => {
         let rejected: any;
         const handle = (e: any) => {
           if (rejected) {
-            reject(
-              createError({
-                repository: this.repository,
-                path,
-                e,
-              })
-            );
+            reject(createError({ repository, path, e }));
           }
           rejected = e;
         };
-        const fullPath = joinPaths(this.rootDir, path);
+        const fullPath = joinPaths(repository, path);
         fs.root.getFile(fullPath, { create: false }, resolve, handle);
         fs.root.getDirectory(fullPath, { create: false }, resolve, handle);
       }

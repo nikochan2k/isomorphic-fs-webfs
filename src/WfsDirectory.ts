@@ -7,9 +7,13 @@ export class WfsDirectory extends AbstractDirectory {
   }
 
   public async _list(): Promise<string[]> {
-    const fs = await this.wfs._getFS();
+    const wfs = this.wfs;
+    const path = this.path;
+    const repository = wfs.repository;
+    const fullPath = joinPaths(repository, path);
+
+    const fs = await wfs._getFS();
     return new Promise<string[]>((resolve, reject) => {
-      const fullPath = joinPaths(this.fs.repository, this.path);
       fs.root.getDirectory(
         fullPath,
         { create: false },
@@ -18,86 +22,54 @@ export class WfsDirectory extends AbstractDirectory {
           reader.readEntries(
             (entries) => {
               const list: string[] = [];
-              const from = this.fs.repository.length;
+              const from = repository.length;
               for (const entry of entries) {
                 list.push(entry.fullPath.substr(from));
               }
               resolve(list);
             },
-            (e) =>
-              reject(
-                createError({
-                  repository: this.fs.repository,
-                  path: this.path,
-                  e,
-                })
-              )
+            (e) => reject(createError({ repository, path, e }))
           );
         },
-        (e) =>
-          reject(
-            createError({
-              repository: this.fs.repository,
-              path: this.path,
-              e,
-            })
-          )
+        (e) => reject(createError({ repository, path, e }))
       );
     });
   }
 
   public async _mkcol(): Promise<void> {
-    const fs = await this.wfs._getFS();
+    const wfs = this.wfs;
+    const path = this.path;
+    const repository = wfs.repository;
+    const fullPath = joinPaths(repository, path);
+
+    const fs = await wfs._getFS();
     return new Promise<void>((resolve, reject) => {
-      const fullPath = joinPaths(this.fs.repository, this.path);
       fs.root.getDirectory(
         fullPath,
         { create: true },
         () => resolve(),
-        (e) =>
-          reject(
-            reject(
-              createError({
-                repository: this.fs.repository,
-                path: this.path,
-                e,
-              })
-            )
-          )
+        (e) => reject(reject(createError({ repository, path, e })))
       );
     });
   }
 
   public async _rmdir(): Promise<void> {
+    const wfs = this.wfs;
+    const path = this.path;
+    const repository = wfs.repository;
+    const fullPath = joinPaths(repository, path);
+
     const fs = await this.wfs._getFS();
     return new Promise<void>((resolve, reject) => {
-      const fullPath = joinPaths(this.fs.repository, this.path);
       fs.root.getDirectory(
         fullPath,
         { create: false },
         (entry) => {
           const handle = (e: any) =>
-            reject(
-              reject(
-                createError({
-                  repository: this.fs.repository,
-                  path: this.path,
-                  e,
-                })
-              )
-            );
+            reject(reject(createError({ repository, path, e })));
           entry.remove(resolve, handle);
         },
-        (e) =>
-          reject(
-            reject(
-              createError({
-                repository: this.fs.repository,
-                path: this.path,
-                e,
-              })
-            )
-          )
+        (e) => reject(reject(createError({ repository, path, e })))
       );
     });
   }

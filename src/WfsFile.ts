@@ -11,47 +11,37 @@ import {
 import { WfsFileSystem } from "./WfsFileSystem";
 
 export class WfsFile extends AbstractFile {
-  constructor(public wfsFS: WfsFileSystem, path: string) {
-    super(wfsFS, path);
+  constructor(public wfs: WfsFileSystem, path: string) {
+    super(wfs, path);
   }
 
   public async _rm(): Promise<void> {
-    const wfsFS = this.wfsFS;
-    const fs = await wfsFS._getFS();
+    const wfs = this.wfs;
+    const path = this.path;
+    const repository = wfs.repository;
+    const fullPath = joinPaths(repository, path);
+
+    const fs = await wfs._getFS();
     return new Promise<void>((resolve, reject) => {
-      const fullPath = joinPaths(wfsFS.repository, this.path);
       fs.root.getFile(
         fullPath,
         { create: false },
         (entry) =>
           entry.remove(resolve, (e) =>
-            reject(
-              createError({
-                repository: wfsFS.repository,
-                path: this.path,
-                e,
-              })
-            )
+            reject(createError({ repository, path, e }))
           ),
-        (e) =>
-          reject(
-            createError({
-              repository: this.fs.repository,
-              path: this.path,
-              e,
-            })
-          )
+        (e) => reject(createError({ repository, path, e }))
       );
     });
   }
 
   protected async _getData(_options: OpenOptions): Promise<Data> {
-    const wfsFS = this.wfsFS;
-    const repository = wfsFS.repository;
+    const wfs = this.wfs;
+    const repository = wfs.repository;
     const path = this.path;
     const fullPath = joinPaths(repository, path);
 
-    const fs = await wfsFS._getFS();
+    const fs = await wfs._getFS();
     return new Promise<File>(async (resolve, reject) => {
       const error = (e: any) => reject(createError({ repository, path, e }));
       fs.root.getFile(
@@ -72,7 +62,7 @@ export class WfsFile extends AbstractFile {
     const stream = await converter.toReadableStream(data);
     const reader = stream.getReader();
 
-    const fs = await this.wfsFS._getFS();
+    const fs = await this.wfs._getFS();
     const writer = await new Promise<FileWriter>((resolve, reject) => {
       const handle = (e: any) => reject(createError({ repository, path, e }));
       fs.root.getFile(
