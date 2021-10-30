@@ -1,3 +1,3 @@
-# isomorphic-fs-webfs
+# univ-fs-webfs
 
-The isomorphic FileSystem API for Web File System API.
+The universal FileSystem API for Web File System API.

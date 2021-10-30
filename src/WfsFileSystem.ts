@@ -4,7 +4,6 @@ import {
   Directory,
   File,
   FileSystemOptions,
-  HeadOptions,
   joinPaths,
   normalizePath,
   NotAllowedError,
@@ -109,7 +108,7 @@ export class WfsFileSystem extends AbstractFileSystem {
     return fs;
   }
 
-  public async _head(path: string, _options: HeadOptions): Promise<Stats> {
+  public async _head(path: string): Promise<Stats> {
     const entry = await this.getFileSystemEntry(path);
     return new Promise<Stats>((resolve, reject) => {
       entry.getMetadata(
@@ -170,7 +169,7 @@ export class WfsFileSystem extends AbstractFileSystem {
       } catch {}
     }
     const file = await this.getFile(path);
-    const blob = await file.readAll({ sourceType: "Blob" });
+    const blob = await file.read({ sourceType: "Blob" });
     return URL.createObjectURL(blob);
   }
 
