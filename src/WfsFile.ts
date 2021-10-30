@@ -1,4 +1,4 @@
-import { Converter, Source } from "univ-conv";
+import { Converter, Data } from "univ-conv";
 import {
   AbortError,
   AbstractFile,
@@ -45,7 +45,7 @@ export class WfsFile extends AbstractFile {
     });
   }
 
-  protected async _getSource(_options: OpenOptions): Promise<Source> {
+  protected async _getData(_options: OpenOptions): Promise<Data> {
     const wfsFS = this.wfsFS;
     const repository = wfsFS.repository;
     const path = this.path;
@@ -53,23 +53,23 @@ export class WfsFile extends AbstractFile {
 
     const fs = await wfsFS._getFS();
     return new Promise<File>(async (resolve, reject) => {
-      const handle = (e: any) => reject(createError({ repository, path, e }));
+      const error = (e: any) => reject(createError({ repository, path, e }));
       fs.root.getFile(
         fullPath,
         { create: false },
-        (entry) => entry.file((file) => resolve(file), handle),
-        handle
+        (entry) => entry.file((file) => resolve(file), error),
+        error
       );
     });
   }
 
-  protected async _write(src: Source, options: WriteOptions): Promise<void> {
+  protected async _write(data: Data, options: WriteOptions): Promise<void> {
     const repository = this.fs.repository;
     const path = this.path;
     const fullPath = joinPaths(repository, path);
 
     const converter = new Converter(options);
-    const stream = await converter.toReadableStream(src);
+    const stream = await converter.toReadableStream(data);
     const reader = stream.getReader();
 
     const fs = await this.wfsFS._getFS();

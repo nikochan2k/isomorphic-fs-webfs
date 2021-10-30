@@ -169,7 +169,7 @@ export class WfsFileSystem extends AbstractFileSystem {
       } catch {}
     }
     const file = await this.getFile(path);
-    const blob = await file.read({ sourceType: "Blob" });
+    const blob = await file.read({ type: "Blob" });
     return URL.createObjectURL(blob);
   }
 
