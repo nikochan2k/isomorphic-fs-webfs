@@ -2,6 +2,7 @@ import {
   AbstractFileSystem,
   createError,
   Directory,
+  ErrorLike,
   File,
   FileSystemOptions,
   joinPaths,
@@ -12,13 +13,14 @@ import {
   Props,
   QuotaExceededError,
   Stats,
+  TypeMismatchError,
   URLType,
 } from "univ-fs";
 import { WfsDirectory } from "./WfsDirectory";
 import { WfsFile } from "./WfsFile";
 
 const requestFileSystem =
-  window.requestFileSystem || (window as any).webkitRequestFileSystem;
+  window.requestFileSystem || (window as any).webkitRequestFileSystem; // eslint-disable-line
 export class WfsFileSystem extends AbstractFileSystem {
   private fs?: FileSystem;
 
@@ -37,6 +39,7 @@ export class WfsFileSystem extends AbstractFileSystem {
 
     const repository = this.repository;
 
+    /* eslint-disable */
     if ((window as any).webkitStorageInfo) {
       await new Promise<void>((resolve, reject) => {
         const webkitStorageInfo = (window as any).webkitStorageInfo;
@@ -44,13 +47,13 @@ export class WfsFileSystem extends AbstractFileSystem {
           window.PERSISTENT,
           this.size,
           () => resolve(),
-          (e: any) =>
+          (e: unknown) =>
             reject(
               createError({
                 name: QuotaExceededError.name,
                 repository,
                 path: "",
-                e,
+                e: e as ErrorLike,
               })
             )
         );
@@ -62,30 +65,31 @@ export class WfsFileSystem extends AbstractFileSystem {
         webkitPersistentStorage.requestQuota(
           this.size,
           () => resolve(),
-          (e: any) =>
+          (e: unknown) =>
             reject(
               createError({
                 name: QuotaExceededError.name,
                 repository,
                 path: "",
-                e,
+                e: e as ErrorLike,
               })
             )
         );
       });
     }
+    /* eslint-enable */
     const fs = await new Promise<FileSystem>((resolve, reject) => {
       requestFileSystem(
         window.PERSISTENT,
         this.size,
         (fs) => resolve(fs),
-        (e) =>
+        (e: unknown) =>
           reject(
             createError({
               name: NotAllowedError.name,
               repository,
               path: "",
-              e,
+              e: e as ErrorLike,
             })
           )
       );
@@ -95,12 +99,12 @@ export class WfsFileSystem extends AbstractFileSystem {
         repository,
         { create: true },
         () => resolve(),
-        (e) =>
+        (e: unknown) =>
           reject(
             createError({
               repository,
               path: "",
-              e,
+              e: e as ErrorLike,
             })
           )
       );
@@ -121,12 +125,12 @@ export class WfsFileSystem extends AbstractFileSystem {
             resolve({ modified });
           }
         },
-        (e) =>
+        (e: unknown) =>
           reject(
             createError({
               repository: this.repository,
               path,
-              e,
+              e: e as ErrorLike,
             })
           )
       );
@@ -135,23 +139,23 @@ export class WfsFileSystem extends AbstractFileSystem {
 
   public _patch(
     path: string,
-    _props: Props,
-    _options: PatchOptions
+    _props: Props, // eslint-disable-line
+    _options: PatchOptions // eslint-disable-line
   ): Promise<void> {
     throw createError({
       name: NotSupportedError.name,
       repository: this.repository,
       path,
-      e: "patch is not supported",
+      e: { message: "patch is not supported" },
     });
   }
 
   public async getDirectory(path: string): Promise<Directory> {
-    return new WfsDirectory(this, path);
+    return Promise.resolve(new WfsDirectory(this, path));
   }
 
   public async getFile(path: string): Promise<File> {
-    return new WfsFile(this, path);
+    return Promise.resolve(new WfsFile(this, path));
   }
 
   public async toURL(path: string, urlType: URLType = "GET"): Promise<string> {
@@ -160,37 +164,61 @@ export class WfsFileSystem extends AbstractFileSystem {
         name: NotSupportedError.name,
         repository: this.repository,
         path,
-        e: `"${urlType}" is not supported`,
+        e: { message: `"${urlType}" is not supported` },
       });
     }
     const entry = await this.getFileSystemEntry(path);
     if (typeof entry.toURL === "function") {
       try {
         return entry.toURL();
-      } catch {}
+      } catch (e) {
+        console.debug(e);
+      }
     }
     const file = await this.getFile(path);
     const blob = await file.read({ type: "Blob" });
     return URL.createObjectURL(blob);
   }
 
-  private async getFileSystemEntry(path: string) {
+  private async getFileSystemEntry(
+    path: string
+  ): Promise<FileSystemFileEntry | FileSystemDirectoryEntry> {
     const repository = this.repository;
 
     const fs = await this._getFS();
-    return new Promise<FileSystemFileEntry | FileSystemDirectoryEntry>(
+    const fullPath = joinPaths(repository, path);
+    const filePromise = new Promise<FileSystemFileEntry>((resolve, reject) => {
+      fs.root.getFile(fullPath, { create: false }, resolve, reject);
+    });
+    const dirPromise = new Promise<FileSystemDirectoryEntry>(
       (resolve, reject) => {
-        let rejected: any;
-        const handle = (e: any) => {
-          if (rejected) {
-            reject(createError({ repository, path, e }));
-          }
-          rejected = e;
-        };
-        const fullPath = joinPaths(repository, path);
-        fs.root.getFile(fullPath, { create: false }, resolve, handle);
-        fs.root.getDirectory(fullPath, { create: false }, resolve, handle);
+        fs.root.getDirectory(fullPath, { create: false }, resolve, reject);
       }
     );
+    const results = await Promise.allSettled([filePromise, dirPromise]);
+    if (results[0].status === "fulfilled") {
+      return results[0].value;
+    } else if (results[1].status === "fulfilled") {
+      return results[1].value;
+    } else {
+      const err1 = createError({
+        repository: this.repository,
+        path,
+        e: results[0].reason as ErrorLike,
+      });
+      const err2 = createError({
+        repository: this.repository,
+        path,
+        e: results[1].reason as ErrorLike,
+      });
+      if (
+        err1.name === TypeMismatchError.name ||
+        err1.name === TypeError.name
+      ) {
+        throw err2;
+      } else {
+        throw err1;
+      }
+    }
   }
 }

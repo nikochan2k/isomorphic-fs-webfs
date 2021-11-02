@@ -3,6 +3,7 @@ import {
   AbortError,
   AbstractFile,
   createError,
+  ErrorLike,
   joinPaths,
   NoModificationAllowedError,
   OpenOptions,
@@ -28,22 +29,25 @@ export class WfsFile extends AbstractFile {
         { create: false },
         (entry) =>
           entry.remove(resolve, (e) =>
-            reject(createError({ repository, path, e }))
+            reject(createError({ repository, path, e: e as ErrorLike }))
           ),
-        (e) => reject(createError({ repository, path, e }))
+        (e) => reject(createError({ repository, path, e: e as ErrorLike }))
       );
     });
   }
 
-  protected async _getData(_options: OpenOptions): Promise<Data> {
+  protected async _load(
+    _options: OpenOptions // eslint-disable-line
+  ): Promise<Data> {
     const wfs = this.wfs;
     const repository = wfs.repository;
     const path = this.path;
     const fullPath = joinPaths(repository, path);
 
     const fs = await wfs._getFS();
-    return new Promise<File>(async (resolve, reject) => {
-      const error = (e: any) => reject(createError({ repository, path, e }));
+    return new Promise<File>((resolve, reject) => {
+      const error = (e: unknown) =>
+        reject(createError({ repository, path, e: e as ErrorLike }));
       fs.root.getFile(
         fullPath,
         { create: false },
@@ -53,7 +57,7 @@ export class WfsFile extends AbstractFile {
     });
   }
 
-  protected async _write(data: Data, options: WriteOptions): Promise<void> {
+  protected async _save(data: Data, options: WriteOptions): Promise<void> {
     const repository = this.fs.repository;
     const path = this.path;
     const fullPath = joinPaths(repository, path);
@@ -64,21 +68,24 @@ export class WfsFile extends AbstractFile {
 
     const fs = await this.wfs._getFS();
     const writer = await new Promise<FileWriter>((resolve, reject) => {
-      const handle = (e: any) => reject(createError({ repository, path, e }));
+      const handle = (e: unknown) =>
+        reject(createError({ repository, path, e: e as ErrorLike }));
       fs.root.getFile(
         fullPath,
         { create: true },
         (entry) =>
-          entry.createWriter(async (w) => {
-            if (options.append) {
-              const stats = await this.head(options);
-              const size = stats.size as number;
-              w.seek(size);
-              resolve(w);
-            } else {
-              this._handle(w, resolve, reject);
-              w.truncate(0);
-            }
+          entry.createWriter((w) => {
+            void (async () => {
+              if (options.append) {
+                const stats = await this.head(options);
+                const size = stats.size as number;
+                w.seek(size);
+                resolve(w);
+              } else {
+                this._handle(w, resolve, reject);
+                w.truncate(0);
+              }
+            })();
           }, handle),
         handle
       );
@@ -89,7 +96,7 @@ export class WfsFile extends AbstractFile {
       while (!res.done) {
         const chunk = res.value;
         if (chunk != null) {
-          const blob = await converter.toBlob(chunk);
+          const blob = await converter.toBlob(chunk as Data);
           await new Promise<void>((resolve, reject) => {
             this._handle(writer, () => resolve(), reject);
             writer.write(blob);
@@ -97,44 +104,44 @@ export class WfsFile extends AbstractFile {
         }
         res = await reader.read();
       }
-      reader.cancel();
+      await reader.cancel();
     } catch (err) {
-      reader.cancel(err);
+      await reader.cancel(err);
       throw err;
     }
   }
 
-  private async _handle(
+  private _handle(
     writer: FileWriter,
     resolve: (value: FileWriter | PromiseLike<FileWriter>) => void,
-    reject: (reason?: any) => void
+    reject: (reason?: ErrorLike) => void
   ) {
     const repository = this.fs.repository;
     const path = this.path;
     const removeEvents = () => {
-      delete (writer as any).onabort;
-      delete (writer as any).onerror;
-      delete (writer as any).onwriteend;
+      delete (writer as Partial<FileWriter>).onabort;
+      delete (writer as Partial<FileWriter>).onerror;
+      delete (writer as Partial<FileWriter>).onwriteend;
     };
-    writer.onabort = (e) => {
+    writer.onabort = (e: unknown) => {
       removeEvents();
       reject(
         createError({
           name: AbortError.name,
           repository,
           path,
-          e,
+          e: e as ErrorLike,
         })
       );
     };
-    writer.onerror = (e) => {
+    writer.onerror = (e: unknown) => {
       removeEvents();
       reject(
         createError({
           name: NoModificationAllowedError.name,
           repository,
           path,
-          e,
+          e: e as ErrorLike,
         })
       );
     };

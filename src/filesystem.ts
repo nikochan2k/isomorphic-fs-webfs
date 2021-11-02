@@ -6,7 +6,9 @@
 // Copyright (c) Microsoft Open Technologies, Inc.
 // Licensed under the MIT license.
 
+/* eslint-disable */
 interface Window {
+  /* eslint-enable */
   /**
    * Requests a filesystem in which to store application data.
    * @param type              Whether the filesystem requested should be persistent, as defined above. Use one of TEMPORARY or PERSISTENT.
@@ -320,7 +322,7 @@ interface FileWriter extends FileSaver {
 }
 
 /* FileWriter states */
-declare var FileWriter: {
+declare const FileWriter: {
   INIT: number;
   WRITING: number;
   DONE: number;
@@ -331,7 +333,7 @@ interface FileError {
   code: number;
 }
 
-declare var FileError: {
+declare const FileError: {
   new (code: number): FileError;
   NOT_FOUND_ERR: number;
   SECURITY_ERR: number;

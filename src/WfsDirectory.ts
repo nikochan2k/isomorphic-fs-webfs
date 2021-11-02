@@ -1,4 +1,4 @@
-import { AbstractDirectory, createError, joinPaths } from "univ-fs";
+import { AbstractDirectory, createError, ErrorLike, joinPaths } from "univ-fs";
 import { WfsFileSystem } from "./WfsFileSystem";
 
 export class WfsDirectory extends AbstractDirectory {
@@ -28,10 +28,10 @@ export class WfsDirectory extends AbstractDirectory {
               }
               resolve(list);
             },
-            (e) => reject(createError({ repository, path, e }))
+            (e) => reject(createError({ repository, path, e: e as ErrorLike }))
           );
         },
-        (e) => reject(createError({ repository, path, e }))
+        (e) => reject(createError({ repository, path, e: e as ErrorLike }))
       );
     });
   }
@@ -48,7 +48,7 @@ export class WfsDirectory extends AbstractDirectory {
         fullPath,
         { create: true },
         () => resolve(),
-        (e) => reject(reject(createError({ repository, path, e })))
+        (e) => reject(createError({ repository, path, e: e as ErrorLike }))
       );
     });
   }
@@ -65,11 +65,11 @@ export class WfsDirectory extends AbstractDirectory {
         fullPath,
         { create: false },
         (entry) => {
-          const handle = (e: any) =>
-            reject(reject(createError({ repository, path, e })));
+          const handle = (e: FileError) =>
+            reject(createError({ repository, path, e: e as ErrorLike }));
           entry.remove(resolve, handle);
         },
-        (e) => reject(reject(createError({ repository, path, e })))
+        (e) => reject(createError({ repository, path, e: e as ErrorLike }))
       );
     });
   }
