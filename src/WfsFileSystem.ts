@@ -14,7 +14,7 @@ import {
   QuotaExceededError,
   Stats,
   TypeMismatchError,
-  URLType,
+  URLOptions,
 } from "univ-fs";
 import { WfsDirectory } from "./WfsDirectory";
 import { WfsFile } from "./WfsFile";
@@ -30,6 +30,10 @@ export class WfsFileSystem extends AbstractFileSystem {
     options?: FileSystemOptions
   ) {
     super(normalizePath(rootDir), options);
+  }
+
+  public async _getDirectory(path: string): Promise<Directory> {
+    return Promise.resolve(new WfsDirectory(this, path));
   }
 
   public async _getFS() {
@@ -113,6 +117,10 @@ export class WfsFileSystem extends AbstractFileSystem {
     return fs;
   }
 
+  public async _getFile(path: string): Promise<File> {
+    return Promise.resolve(new WfsFile(this, path));
+  }
+
   public async _head(path: string): Promise<Stats> {
     const entry = await this.getFileSystemEntry(path);
     return new Promise<Stats>((resolve, reject) => {
@@ -150,21 +158,14 @@ export class WfsFileSystem extends AbstractFileSystem {
     });
   }
 
-  public async getDirectory(path: string): Promise<Directory> {
-    return Promise.resolve(new WfsDirectory(this, path));
-  }
-
-  public async getFile(path: string): Promise<File> {
-    return Promise.resolve(new WfsFile(this, path));
-  }
-
-  public async toURL(path: string, urlType: URLType = "GET"): Promise<string> {
-    if (urlType !== "GET") {
+  public async _toURL(path: string, options?: URLOptions): Promise<string> {
+    options = { urlType: "GET", ...options };
+    if (options.urlType !== "GET") {
       throw createError({
         name: NotSupportedError.name,
         repository: this.repository,
         path,
-        e: { message: `"${urlType}" is not supported` },
+        e: { message: `"${options.urlType}" is not supported` }, // eslint-disable-line
       });
     }
     const entry = await this.getFileSystemEntry(path);

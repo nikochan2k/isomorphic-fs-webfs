@@ -7,6 +7,7 @@ import {
   joinPaths,
   NoModificationAllowedError,
   OpenOptions,
+  Stats,
   WriteOptions,
 } from "univ-fs";
 import { WfsFileSystem } from "./WfsFileSystem";
@@ -36,9 +37,8 @@ export class WfsFile extends AbstractFile {
     });
   }
 
-  protected async _load(
-    _options: OpenOptions // eslint-disable-line
-  ): Promise<Data> {
+  // eslint-disable-next-line
+  protected async _load(_stats: Stats, _options: OpenOptions): Promise<Data> {
     const wfs = this.wfs;
     const repository = wfs.repository;
     const path = this.path;
@@ -57,7 +57,11 @@ export class WfsFile extends AbstractFile {
     });
   }
 
-  protected async _save(data: Data, options: WriteOptions): Promise<void> {
+  protected async _save(
+    data: Data,
+    _stats: Stats,
+    options: WriteOptions
+  ): Promise<void> {
     const repository = this.fs.repository;
     const path = this.path;
     const fullPath = joinPaths(repository, path);
