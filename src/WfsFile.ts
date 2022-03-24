@@ -1,4 +1,4 @@
-import { Converter, Data } from "univ-conv";
+import { Data } from "univ-conv";
 import {
   AbortError,
   AbstractFile,
@@ -6,7 +6,7 @@ import {
   ErrorLike,
   joinPaths,
   NoModificationAllowedError,
-  OpenOptions,
+  ReadOptions,
   Stats,
   WriteOptions,
 } from "univ-fs";
@@ -38,7 +38,7 @@ export class WfsFile extends AbstractFile {
   }
 
   // eslint-disable-next-line
-  protected async _load(_stats: Stats, _options: OpenOptions): Promise<Data> {
+  protected async _load(_stats: Stats, _options: ReadOptions): Promise<Data> {
     const wfs = this.wfs;
     const repository = wfs.repository;
     const path = this.path;
@@ -66,9 +66,10 @@ export class WfsFile extends AbstractFile {
     const path = this.path;
     const fullPath = joinPaths(repository, path);
 
-    const converter = new Converter(options);
+    const converter = this._getConverter();
     const stream = await converter.toReadableStream(data);
-    const reader = stream.getReader();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    const reader = stream.getReader() as ReadableStreamDefaultReader<unknown>;
 
     const fs = await this.wfs._getFS();
     const writer = await new Promise<FileWriter>((resolve, reject) => {
