@@ -68,8 +68,7 @@ export class WfsFile extends AbstractFile {
 
     const converter = this._getConverter();
     const stream = await converter.toReadableStream(data);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    const reader = stream.getReader() as ReadableStreamDefaultReader<unknown>;
+    const reader = stream.getReader();
 
     const fs = await this.wfs._getFS();
     const writer = await new Promise<FileWriter>((resolve, reject) => {

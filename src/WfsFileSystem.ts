@@ -194,6 +194,10 @@ export class WfsFileSystem extends AbstractFileSystem {
     return URL.createObjectURL(blob);
   }
 
+  public supportDirectory(): boolean {
+    return true;
+  }
+
   private async getFileSystemEntry(
     path: string
   ): Promise<FileSystemFileEntry | FileSystemDirectoryEntry> {
