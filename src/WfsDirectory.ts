@@ -24,7 +24,11 @@ export class WfsDirectory extends AbstractDirectory {
               const list: string[] = [];
               const from = repository.length;
               for (const entry of entries) {
-                list.push(entry.fullPath.substr(from));
+                let path = entry.fullPath.substring(from);
+                if (entry.isDirectory) {
+                  path += "/";
+                }
+                list.push(path);
               }
               resolve(list);
             },
