@@ -1,4 +1,11 @@
-import { AbstractDirectory, createError, ErrorLike, joinPaths } from "univ-fs";
+import {
+  AbstractDirectory,
+  createError,
+  EntryType,
+  ErrorLike,
+  Item,
+  joinPaths,
+} from "univ-fs";
 import { WfsFileSystem } from "./WfsFileSystem";
 
 export class WfsDirectory extends AbstractDirectory {
@@ -6,14 +13,14 @@ export class WfsDirectory extends AbstractDirectory {
     super(wfs, path);
   }
 
-  public async _list(): Promise<string[]> {
+  public async _list(): Promise<Item[]> {
     const wfs = this.wfs;
     const path = this.path;
     const repository = wfs.repository;
     const fullPath = joinPaths(repository, path);
 
     const fs = await wfs._getFS();
-    return new Promise<string[]>((resolve, reject) => {
+    return new Promise<Item[]>((resolve, reject) => {
       fs.root.getDirectory(
         fullPath,
         { create: false },
@@ -21,14 +28,25 @@ export class WfsDirectory extends AbstractDirectory {
           const reader = directory.createReader();
           reader.readEntries(
             (entries) => {
-              const list: string[] = [];
+              const list: Item[] = [];
               const from = repository.length;
               for (const entry of entries) {
-                let path = entry.fullPath.substring(from);
+                const path = entry.fullPath.substring(from);
+                let item: Item;
+                /* eslint-disable */
                 if (entry.isDirectory) {
-                  path += "/";
+                  item = {
+                    path,
+                    type: EntryType.Directory,
+                  };
+                } else {
+                  item = {
+                    path,
+                    type: EntryType.File,
+                  };
                 }
-                list.push(path);
+                /* eslint-enable */
+                list.push(item);
               }
               resolve(list);
             },
