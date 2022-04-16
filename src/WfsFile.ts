@@ -1,4 +1,4 @@
-import { Data } from "univ-conv";
+import { Data, ConvertOptions } from "univ-conv";
 import {
   AbortError,
   AbstractFile,
@@ -37,6 +37,14 @@ export class WfsFile extends AbstractFile {
     });
   }
 
+  public supportRangeRead(): boolean {
+    return false;
+  }
+
+  public supportRangeWrite(): boolean {
+    return false;
+  }
+
   // eslint-disable-next-line
   protected async _load(_stats: Stats, _options: ReadOptions): Promise<Data> {
     const wfs = this.wfs;
@@ -67,7 +75,9 @@ export class WfsFile extends AbstractFile {
     const fullPath = joinPaths(repository, path);
 
     const converter = this._getConverter();
-    const stream = await converter.toReadableStream(data);
+    const co: Partial<ConvertOptions> = { ...options };
+    delete co.start;
+    const stream = await converter.toReadableStream(data, co);
     const reader = stream.getReader();
 
     const fs = await this.wfs._getFS();
@@ -80,7 +90,10 @@ export class WfsFile extends AbstractFile {
         (entry) =>
           entry.createWriter((w) => {
             void (async () => {
-              if (options.append) {
+              if (typeof options.start === "number") {
+                w.seek(options.start);
+                resolve(w);
+              } else if (options.append) {
                 const stats = await this.head(options);
                 const size = stats.size as number;
                 w.seek(size);

@@ -10,7 +10,6 @@ import {
   NotAllowedError,
   NotSupportedError,
   PatchOptions,
-  Props,
   QuotaExceededError,
   Stats,
   TypeMismatchError,
@@ -147,7 +146,8 @@ export class WfsFileSystem extends AbstractFileSystem {
 
   public _patch(
     path: string,
-    _props: Props, // eslint-disable-line
+    _stats: Stats, // eslint-disable-line
+    _props: Stats, // eslint-disable-line
     _options: PatchOptions // eslint-disable-line
   ): Promise<void> {
     throw createError({
@@ -192,6 +192,18 @@ export class WfsFileSystem extends AbstractFileSystem {
     const file = await this.getFile(path);
     const blob = await file.read("blob");
     return URL.createObjectURL(blob);
+  }
+
+  public canPatchAccessed(): boolean {
+    return false;
+  }
+
+  public canPatchCreated(): boolean {
+    return false;
+  }
+
+  public canPatchModified(): boolean {
+    return false;
   }
 
   public supportDirectory(): boolean {
