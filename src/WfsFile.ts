@@ -1,4 +1,4 @@
-import { Data, ConvertOptions } from "univ-conv";
+import { ConvertOptions, Data, handleReadableStream } from "univ-conv";
 import {
   AbortError,
   AbstractFile,
@@ -37,12 +37,16 @@ export class WfsFile extends AbstractFile {
     });
   }
 
+  public supportAppend(): boolean {
+    return true;
+  }
+
   public supportRangeRead(): boolean {
     return false;
   }
 
   public supportRangeWrite(): boolean {
-    return false;
+    return true;
   }
 
   // eslint-disable-next-line
@@ -78,7 +82,6 @@ export class WfsFile extends AbstractFile {
     const co: Partial<ConvertOptions> = { ...options };
     delete co.start;
     const stream = await converter.toReadableStream(data, co);
-    const reader = stream.getReader();
 
     const fs = await this.wfs._getFS();
     const writer = await new Promise<FileWriter>((resolve, reject) => {
@@ -108,24 +111,14 @@ export class WfsFile extends AbstractFile {
       );
     });
 
-    try {
-      let res = await reader.read();
-      while (!res.done) {
-        const chunk = res.value;
-        if (chunk != null) {
-          const blob = await converter.toBlob(chunk as Data);
-          await new Promise<void>((resolve, reject) => {
-            this._handle(writer, () => resolve(), reject);
-            writer.write(blob);
-          });
-        }
-        res = await reader.read();
-      }
-      await reader.cancel();
-    } catch (err) {
-      await reader.cancel(err);
-      throw err;
-    }
+    await handleReadableStream(stream, async (chunk) => {
+      const blob = await converter.toBlob(chunk);
+      await new Promise((resolve, reject) => {
+        this._handle(writer, resolve, reject);
+        writer.write(blob);
+      });
+      return true;
+    });
   }
 
   private _handle(
@@ -136,12 +129,11 @@ export class WfsFile extends AbstractFile {
     const repository = this.fs.repository;
     const path = this.path;
     const removeEvents = () => {
-      delete (writer as Partial<FileWriter>).onabort;
-      delete (writer as Partial<FileWriter>).onerror;
-      delete (writer as Partial<FileWriter>).onwriteend;
+      writer.removeEventListener("abort", null);
+      writer.removeEventListener("error", null);
+      writer.removeEventListener("writeend", null);
     };
-    writer.onabort = (e: unknown) => {
-      removeEvents();
+    writer.addEventListener("abort", (e: unknown) => {
       reject(
         createError({
           name: AbortError.name,
@@ -150,9 +142,9 @@ export class WfsFile extends AbstractFile {
           e: e as ErrorLike,
         })
       );
-    };
-    writer.onerror = (e: unknown) => {
       removeEvents();
+    });
+    writer.addEventListener("error", (e: unknown) => {
       reject(
         createError({
           name: NoModificationAllowedError.name,
@@ -161,10 +153,11 @@ export class WfsFile extends AbstractFile {
           e: e as ErrorLike,
         })
       );
-    };
-    writer.onwriteend = () => {
       removeEvents();
+    });
+    writer.addEventListener("writeend", () => {
       resolve(writer);
-    };
+      removeEvents();
+    });
   }
 }
