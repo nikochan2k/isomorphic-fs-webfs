@@ -17,7 +17,26 @@ export class WfsFile extends AbstractFile {
     super(wfs, path);
   }
 
-  public async _rm(): Promise<void> {
+  // eslint-disable-next-line
+  public async _doRead(_stats: Stats, _options: ReadOptions): Promise<Data> {
+    const wfs = this.wfs;
+    const repository = wfs.repository;
+    const path = this.path;
+    const fullPath = joinPaths(repository, path);
+
+    const fs = await wfs._getFS();
+    return new Promise<File>((resolve, reject) => {
+      const onError = (e: unknown) => reject(e);
+      fs.root.getFile(
+        fullPath,
+        { create: false },
+        (entry) => entry.file((file) => resolve(file), onError),
+        onError
+      );
+    });
+  }
+
+  public async _doRm(): Promise<void> {
     const wfs = this.wfs;
     const path = this.path;
     const repository = wfs.repository;
@@ -28,48 +47,13 @@ export class WfsFile extends AbstractFile {
       fs.root.getFile(
         fullPath,
         { create: false },
-        (entry) =>
-          entry.remove(resolve, (e) =>
-            reject(createError({ repository, path, e: e as ErrorLike }))
-          ),
-        (e) => reject(createError({ repository, path, e: e as ErrorLike }))
+        (entry) => entry.remove(resolve, (e) => reject(e)),
+        (e) => reject(e)
       );
     });
   }
 
-  public supportAppend(): boolean {
-    return true;
-  }
-
-  public supportRangeRead(): boolean {
-    return false;
-  }
-
-  public supportRangeWrite(): boolean {
-    return true;
-  }
-
-  // eslint-disable-next-line
-  protected async _load(_stats: Stats, _options: ReadOptions): Promise<Data> {
-    const wfs = this.wfs;
-    const repository = wfs.repository;
-    const path = this.path;
-    const fullPath = joinPaths(repository, path);
-
-    const fs = await wfs._getFS();
-    return new Promise<File>((resolve, reject) => {
-      const error = (e: unknown) =>
-        reject(createError({ repository, path, e: e as ErrorLike }));
-      fs.root.getFile(
-        fullPath,
-        { create: false },
-        (entry) => entry.file((file) => resolve(file), error),
-        error
-      );
-    });
-  }
-
-  protected async _save(
+  public async _doWrite(
     data: Data,
     _stats: Stats,
     options: WriteOptions
@@ -85,8 +69,7 @@ export class WfsFile extends AbstractFile {
 
     const fs = await this.wfs._getFS();
     const writer = await new Promise<FileWriter>((resolve, reject) => {
-      const handle = (e: unknown) =>
-        reject(createError({ repository, path, e: e as ErrorLike }));
+      const onError = (e: unknown) => reject(e);
       fs.root.getFile(
         fullPath,
         { create: true },
@@ -106,8 +89,8 @@ export class WfsFile extends AbstractFile {
                 w.truncate(0);
               }
             })();
-          }, handle),
-        handle
+          }, onError),
+        onError
       );
     });
 
@@ -119,6 +102,18 @@ export class WfsFile extends AbstractFile {
       });
       return true;
     });
+  }
+
+  public supportAppend(): boolean {
+    return true;
+  }
+
+  public supportRangeRead(): boolean {
+    return false;
+  }
+
+  public supportRangeWrite(): boolean {
+    return true;
   }
 
   private _handle(

@@ -1,11 +1,4 @@
-import {
-  AbstractDirectory,
-  createError,
-  EntryType,
-  ErrorLike,
-  Item,
-  joinPaths,
-} from "univ-fs";
+import { AbstractDirectory, EntryType, Item, joinPaths } from "univ-fs";
 import { WfsFileSystem } from "./WfsFileSystem";
 
 export class WfsDirectory extends AbstractDirectory {
@@ -13,7 +6,7 @@ export class WfsDirectory extends AbstractDirectory {
     super(wfs, path);
   }
 
-  public async _list(): Promise<Item[]> {
+  public async _doList(): Promise<Item[]> {
     const wfs = this.wfs;
     const path = this.path;
     const repository = wfs.repository;
@@ -50,15 +43,15 @@ export class WfsDirectory extends AbstractDirectory {
               }
               resolve(list);
             },
-            (e) => reject(createError({ repository, path, e: e as ErrorLike }))
+            (e) => reject(e)
           );
         },
-        (e) => reject(createError({ repository, path, e: e as ErrorLike }))
+        (e) => reject(e)
       );
     });
   }
 
-  public async _mkcol(): Promise<void> {
+  public async _doMkcol(): Promise<void> {
     const wfs = this.wfs;
     const path = this.path;
     const repository = wfs.repository;
@@ -70,12 +63,12 @@ export class WfsDirectory extends AbstractDirectory {
         fullPath,
         { create: true },
         () => resolve(),
-        (e) => reject(createError({ repository, path, e: e as ErrorLike }))
+        (e) => reject(e)
       );
     });
   }
 
-  public async _rmdir(): Promise<void> {
+  public async _doRmdir(): Promise<void> {
     const wfs = this.wfs;
     const path = this.path;
     const repository = wfs.repository;
@@ -87,11 +80,10 @@ export class WfsDirectory extends AbstractDirectory {
         fullPath,
         { create: false },
         (entry) => {
-          const handle = (e: FileError) =>
-            reject(createError({ repository, path, e: e as ErrorLike }));
+          const handle = (e: FileError) => reject(e);
           entry.remove(resolve, handle);
         },
-        (e) => reject(createError({ repository, path, e: e as ErrorLike }))
+        (e) => reject(e)
       );
     });
   }
