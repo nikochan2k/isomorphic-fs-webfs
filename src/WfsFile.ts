@@ -17,6 +17,23 @@ export class WfsFile extends AbstractFile {
     super(wfs, path);
   }
 
+  public async _doDelete(): Promise<void> {
+    const wfs = this.wfs;
+    const path = this.path;
+    const repository = wfs.repository;
+    const fullPath = joinPaths(repository, path);
+
+    const fs = await wfs._getFS();
+    return new Promise<void>((resolve, reject) => {
+      fs.root.getFile(
+        fullPath,
+        { create: false },
+        (entry) => entry.remove(resolve, (e) => reject(e)),
+        (e) => reject(e)
+      );
+    });
+  }
+
   // eslint-disable-next-line
   public async _doRead(_stats: Stats, _options: ReadOptions): Promise<Data> {
     const wfs = this.wfs;
@@ -32,23 +49,6 @@ export class WfsFile extends AbstractFile {
         { create: false },
         (entry) => entry.file((file) => resolve(file), onError),
         onError
-      );
-    });
-  }
-
-  public async _doRm(): Promise<void> {
-    const wfs = this.wfs;
-    const path = this.path;
-    const repository = wfs.repository;
-    const fullPath = joinPaths(repository, path);
-
-    const fs = await wfs._getFS();
-    return new Promise<void>((resolve, reject) => {
-      fs.root.getFile(
-        fullPath,
-        { create: false },
-        (entry) => entry.remove(resolve, (e) => reject(e)),
-        (e) => reject(e)
       );
     });
   }

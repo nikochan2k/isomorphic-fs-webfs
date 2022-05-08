@@ -50,12 +50,48 @@ export class WfsFileSystem extends AbstractFileSystem {
     super(normalizePath(rootDir), options);
   }
 
-  public async _doGetDirectory(path: string): Promise<Directory> {
-    return Promise.resolve(new WfsDirectory(this, path));
+  public _doGetDirectory(path: string): Directory {
+    return new WfsDirectory(this, path);
   }
 
-  public async _doGetFile(path: string): Promise<File> {
-    return Promise.resolve(new WfsFile(this, path));
+  public _doGetFile(path: string): File {
+    return new WfsFile(this, path);
+  }
+
+  public async _doGetURL(
+    path: string,
+    isDirectory: boolean, // eslint-disable-line
+    options?: URLOptions
+  ): Promise<string> {
+    options = { method: "GET", ...options };
+    const repository = this.repository;
+    if (options.method !== "GET") {
+      throw createError({
+        name: NotSupportedError.name,
+        repository,
+        path,
+        e: { message: `"${options.method}" is not supported` }, // eslint-disable-line
+      });
+    }
+    const entry = await this.getFileSystemEntry(path);
+    if (typeof entry.toURL === "function") {
+      try {
+        return entry.toURL();
+      } catch (e) {
+        console.debug(e);
+      }
+    }
+    if (isDirectory) {
+      throw createError({
+        name: TypeMismatchError.name,
+        repository,
+        path,
+        e: { message: `"${path}" is not a directory` },
+      });
+    }
+    const file = await this.getFile(path);
+    const blob = await file.read("blob");
+    return URL.createObjectURL(blob);
   }
 
   public async _doHead(path: string): Promise<Stats> {
@@ -87,42 +123,6 @@ export class WfsFileSystem extends AbstractFileSystem {
       path,
       e: { message: "patch is not supported" },
     });
-  }
-
-  public async _doToURL(
-    path: string,
-    isDirectory: boolean, // eslint-disable-line
-    options?: URLOptions
-  ): Promise<string> {
-    options = { urlType: "GET", ...options };
-    const repository = this.repository;
-    if (options.urlType !== "GET") {
-      throw createError({
-        name: NotSupportedError.name,
-        repository,
-        path,
-        e: { message: `"${options.urlType}" is not supported` }, // eslint-disable-line
-      });
-    }
-    const entry = await this.getFileSystemEntry(path);
-    if (typeof entry.toURL === "function") {
-      try {
-        return entry.toURL();
-      } catch (e) {
-        console.debug(e);
-      }
-    }
-    if (isDirectory) {
-      throw createError({
-        name: TypeMismatchError.name,
-        repository,
-        path,
-        e: { message: `"${path}" is not a directory` },
-      });
-    }
-    const file = await this.getFile(path);
-    const blob = await file.read("blob");
-    return URL.createObjectURL(blob);
   }
 
   public async _getFS() {

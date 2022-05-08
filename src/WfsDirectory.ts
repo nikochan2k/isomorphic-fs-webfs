@@ -6,6 +6,26 @@ export class WfsDirectory extends AbstractDirectory {
     super(wfs, path);
   }
 
+  public async _doDelete(): Promise<void> {
+    const wfs = this.wfs;
+    const path = this.path;
+    const repository = wfs.repository;
+    const fullPath = joinPaths(repository, path);
+
+    const fs = await this.wfs._getFS();
+    return new Promise<void>((resolve, reject) => {
+      fs.root.getDirectory(
+        fullPath,
+        { create: false },
+        (entry) => {
+          const handle = (e: FileError) => reject(e);
+          entry.remove(resolve, handle);
+        },
+        (e) => reject(e)
+      );
+    });
+  }
+
   public async _doList(): Promise<Item[]> {
     const wfs = this.wfs;
     const path = this.path;
@@ -63,26 +83,6 @@ export class WfsDirectory extends AbstractDirectory {
         fullPath,
         { create: true },
         () => resolve(),
-        (e) => reject(e)
-      );
-    });
-  }
-
-  public async _doRmdir(): Promise<void> {
-    const wfs = this.wfs;
-    const path = this.path;
-    const repository = wfs.repository;
-    const fullPath = joinPaths(repository, path);
-
-    const fs = await this.wfs._getFS();
-    return new Promise<void>((resolve, reject) => {
-      fs.root.getDirectory(
-        fullPath,
-        { create: false },
-        (entry) => {
-          const handle = (e: FileError) => reject(e);
-          entry.remove(resolve, handle);
-        },
         (e) => reject(e)
       );
     });
