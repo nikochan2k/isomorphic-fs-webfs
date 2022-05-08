@@ -61,7 +61,7 @@ export class WfsFileSystem extends AbstractFileSystem {
   public async _doGetURL(
     path: string,
     isDirectory: boolean,
-    options?: URLOptions
+    options: URLOptions
   ): Promise<string> {
     options = { method: "GET", ...options };
     const repository = this.repository;
