@@ -6,7 +6,6 @@ import {
   ErrorLike,
   joinPaths,
   NoModificationAllowedError,
-  ReadOptions,
   Stats,
   WriteOptions,
 } from "univ-fs";
@@ -34,8 +33,7 @@ export class WfsFile extends AbstractFile {
     });
   }
 
-  // eslint-disable-next-line
-  public async _doRead(_stats: Stats, _options: ReadOptions): Promise<Data> {
+  public async _doRead(): Promise<Data> {
     const wfs = this.wfs;
     const repository = wfs.repository;
     const path = this.path;

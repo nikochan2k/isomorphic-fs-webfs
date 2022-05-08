@@ -60,7 +60,7 @@ export class WfsFileSystem extends AbstractFileSystem {
 
   public async _doGetURL(
     path: string,
-    isDirectory: boolean, // eslint-disable-line
+    isDirectory: boolean,
     options?: URLOptions
   ): Promise<string> {
     options = { method: "GET", ...options };
