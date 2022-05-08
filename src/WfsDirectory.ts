@@ -46,19 +46,11 @@ export class WfsDirectory extends AbstractDirectory {
               for (const entry of entries) {
                 const path = entry.fullPath.substring(from);
                 let item: Item;
-                /* eslint-disable */
                 if (entry.isDirectory) {
-                  item = {
-                    path,
-                    type: EntryType.Directory,
-                  };
+                  item = { path, type: EntryType.Directory };
                 } else {
-                  item = {
-                    path,
-                    type: EntryType.File,
-                  };
+                  item = { path, type: EntryType.File };
                 }
-                /* eslint-enable */
                 list.push(item);
               }
               resolve(list);

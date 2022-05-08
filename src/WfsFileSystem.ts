@@ -73,14 +73,6 @@ export class WfsFileSystem extends AbstractFileSystem {
         e: { message: `"${options.method}" is not supported` }, // eslint-disable-line
       });
     }
-    const entry = await this.getFileSystemEntry(path);
-    if (typeof entry.toURL === "function") {
-      try {
-        return entry.toURL();
-      } catch (e) {
-        console.debug(e);
-      }
-    }
     if (isDirectory) {
       throw createError({
         name: TypeMismatchError.name,
@@ -89,9 +81,17 @@ export class WfsFileSystem extends AbstractFileSystem {
         e: { message: `"${path}" is not a directory` },
       });
     }
-    const file = await this.getFile(path);
-    const blob = await file.read("blob");
-    return URL.createObjectURL(blob);
+    const entry = await this.getFileSystemEntry(path);
+    if (typeof entry.toURL === "function") {
+      try {
+        return entry.toURL();
+      } catch (e) {
+        console.debug(e);
+      }
+    }
+    const file = this.getFile(path);
+    const blob = await file.read("blob"); // eslint-disable-line
+    return URL.createObjectURL(blob); // eslint-disable-line @typescript-eslint/no-unsafe-argument
   }
 
   public async _doHead(path: string): Promise<Stats> {
